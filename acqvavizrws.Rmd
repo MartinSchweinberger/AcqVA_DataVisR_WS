@@ -1,5 +1,5 @@
 ---
-title: "Introduction to Data Visualization with R - AcqVA Aurora workshop - part 1"
+title: "Introduction to Data Visualization with R - AcqVA Aurora workshop"
 author: "Martin Schweinberger"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
@@ -27,7 +27,7 @@ The aim is not to provide a fully-fledged guide but rather to show and exemplify
 <div class="warning" style='padding:0.1em; background-color:#f2f2f2; color:#51247a'>
 <span>
 <p style='margin-top:1em; text-align:center'>
-The entire R Notebook for the tutorial can be downloaded [**here**](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/introviz.Rmd).  If you want to render the R Notebook on your machine, i.e. knitting the document to html or a pdf, you need to make sure that you have R and RStudio installed and you also need to download the [**bibliography file**](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/bibliography.bib) and store it in the same folder where you store the Rmd file. <br><br>
+The entire R Notebook for the tutorial can be downloaded [**here**](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/introviz.Rmd).  If you want to render the R Notebook on your machine, i.e. knitting the document to html or a pdf, you need to make sure that you have R and RStudio installed and you also need to download the [**bibliography file**](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/bibliography.bib) and store it in the same folder where you store the Rproj file. <br><br>
 **[Here](https://colab.research.google.com/drive/1Ty2jK_JZo9hANAWXg-d_PRV8dKVx4P51?usp=sharing)** is a **link to an interactive version of this tutorial on Google Colab**. The interactive tutorial is based on a Jupyter notebook of this tutorial. This interactive Jupyter notebook allows you to execute code yourself and - if you copy the Jupyter notebook - you can also change and edit the notebook, e.g. you can change code and upload your own data.<br></p>
 <p style='margin-left:1em;'>
 </p></span>
@@ -63,7 +63,7 @@ Before attending the workshop, you need to install the following packages in RSt
 
 * `rmarkdown`  (for R Markdown formatting)
 
-**It is really important that you have installed these packages before the workshop so that we do not have to deal with technical issues too much.**
+**It is really important that you have knowledge of R and RStudio and that you have installed the packages before the workshop so that we do not have to deal with technical issues too much.**
 
 You can find a more detailed version of the content of this workshop in these two tutorials
 
@@ -630,13 +630,13 @@ ggplot(pdat, aes(x = Date, y = Prepositions, linetype = GenreRedux, color = Genr
 Schweinberger, Martin. `r format(Sys.time(), '%Y')`. *Introduction to Data Visualization in R*. Brisbane: The University of Queensland. url: https://slcladal.github.io/introviz.html  (Version `r format(Sys.time(), '%Y.%m.%d')`).
 
 ```
-@manual{schweinberger`r format(Sys.time(), '%Y')`acqvadviz,
+@manual{schweinberger`r format(Sys.time(), '%Y')`acqvavizrws,
   author = {Schweinberger, Martin},
   title = {Introduction to Data Visualization with R - AcqVA Aurora workshop},
   note = {https://slcladal.github.io/introviz.html},
   year = {`r format(Sys.time(), '%Y')`},
-  organization = "The University of Queensland, School of Languages and Cultures},
-  address = {Brisbane},
+  organization = "The Arctic University of Norway (UiT), AcqVA Aurora Center},
+  address = {Tromsø},
   edition = {`r format(Sys.time(), '%Y.%m.%d')`}
 }
 ```
@@ -650,7 +650,6 @@ sessionInfo()
 
 [Back to top](#introduction)
 
-[Back to HOME](https://slcladal.github.io/index.html)
 
 ***
 
