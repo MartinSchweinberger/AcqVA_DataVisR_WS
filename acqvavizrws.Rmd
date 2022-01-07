@@ -63,6 +63,23 @@ Before attending the workshop, you need to install the following packages in RSt
 
 * `rmarkdown`  (for R Markdown formatting)
 
+* `installr` (for updating R)
+
+
+
+You can install these packages by clicking on `packages` on the top of the lower right pane in RStudio or you can execute the following code in the lower left, `Console` pane of RStudio. 
+
+```{r}
+# update R
+install.packages("installr")
+library(installr)
+updateR()
+# install required packages
+install.packages(c("tidyverse", "here", "vcd", "likert", "knitr", 
+                   "markdown", "rmarkdown"), dependencies = T)
+```
+
+
 **It is really important that you have knowledge of R and RStudio and that you have installed the packages before the workshop so that we do not have to deal with technical issues too much.**
 
 You can find a more detailed version of the content of this workshop in these two tutorials
@@ -104,21 +121,155 @@ Tuesday, January 25, 1-3pm
 
 * Wrap-up
 
+## About this workshop{-}
+
+You can follow this workshop in different ways:
+
+1. You can sit back and enjoy and focus on what you see and then go back home and try it by yourself later.
+
+2. You can follow this workshop in RStudio and execute code, see what it does, understand it, and adapt it. This requires some skills in R and RStudio - although I have trued to keep things simple.
+
+3. You can click on [this link]() which takes you to a Jupyter Notebook on Google Colab (and you are then ready to go - you only  have to install the packages which takes a couple of minutes). You can then copy that Notebook and save it in your own Google Drive and then execute code, modify it, and understand it. This does require less skills and will be easier for people who just want to focus on the code that produces certain visualizations without doing it in RStudio. Also, this get rid of most technical issues (hopefully) but the installation of packages will take a while and you will need to re-install the packages every time you want to re-use the Jupyter Notebook.
+
+Choose which option suits you best and then go with it. 
+
 # Getting started{-}
 
-At the very beginning of the workshop, we need to set up our R session and prepare our R project. 
+If you choose option 2, you need to set up our R session and prepare our R project at the very beginning of the workshop. 
 
 For everything to work, please do the following:
 
+* Create a folder for this workshop somewhere on your computer, e.g. called *AcqVA_DataVisR_WS*
+
+* In that folder, create two subfolders called *data* and *images*
+
+* Open RStudio, go to File > New Project > 
 
 
 # Primer{-}
 
+We start by creating a super simple graph in base R just to get you going and showing you that creating graphs can be very easy.
+
+So for your first graph, we will create some data and then visualize it - we do this in the following code chunk.
+
+To execute the code, simply click on the *Play* button in the top right corner of the code box.
+
+```{r primer}
+# generate two variables (x and y)
+x <- sample(seq(0, 1, 0.01), 100) # draw a sample of 100 from numbers between 0 and 1
+y <- rep(c("Group A", "Group B"), each = 50) # create a vector of 100 representing 2 groups
+# create a box plot
+boxplot(x ~ y, 
+        col = c("orange", "lightblue"), # define colors of boxes
+        xlab = "Groups",                # define x-axis label
+        ylab = "Probability")           # define y-axis label
+```
+
+Yay! You created a nice boxplot in R. As you can see, generating graphs in R can be super simple.
+
+And you can use base R to create graphs! In this tutorial, I want to show you how to generate graphs that are prettier but the code is also a bit more complex.
+
 # Session preparation{-}
+
+Now, we start by preparing the session. We do this by loading the packages we need as shown below.
+
+```{r prep}
+# load packages
+library(tidyverse)
+library(here)
+library(readxl)
+library(vcd)
+library(likert)
+```
+
+Once you have executed the code 
 
 # How to load different data formats into R{-}
 
+Now, we want to load some data and we will see how to load 4 different types of data:
+
+1. a Microsoft Excel file (xlsx)
+2. a comma-separated file (csv)
+3. a plain, tab-separated text file (txt)
+4. an R data object (rda)
+
+Let's load the data files and inspect the output. The data files should be in the data folder in the workshop project folder you created for this workshop.
+
+
+## Load xlsx-file{-}
+
+When we load data into R, we need to specify where R is supposed to load the file from. A handy way to do this is to use the `here` function (from  the a package also called `here`).
+
+```{r}
+# load xlsx data
+myxlsx <- readxl::read_xlsx(here::here("data", "sampledata.xlsx"), sheet = 1)
+# inspect data (the head function shows the first 6 rows of a table or data frame)
+head(myxlsx)
+```
+
+The data set consists of 7 columns (*Date*, *Genre*, *Text*, *Prepositions*, *Region*, *GenreRedux*, *DateRedux*) representing the relative frequency of prepositions in texts written in England. The columns provide information about the texts with each row representing one of the texts.
+
+## Load csv-file{-}
+
+```{r}
+# load csv file
+mycsv <- read.csv(here::here("data", "sampledata.csv"))
+# inspect data
+head(mycsv)
+```
+
+## Load txt-file{-}
+
+```{r}
+# load xlsx data
+mytxt <- read.delim(here::here("data", "sampledata.txt"), sep = "\t")
+# inspect data
+head(mytxt)
+```
+
+## Load rda-file{-}
+
+```{r}
+# load xlsx data
+myrda <- readRDS(here::here("data", "sampledata.rda"))
+# inspect data
+head(myrda)
+```
+
 # Basics of data preparation{-}
+
+Now that we have loaded the data, we will go over a few, very basic procedures for processing tabular data:
+
+* `mutate`: creates new or changes existing columns
+
+* `filter`: chooses rows based on given criteria
+
+* `select`: chooses columns based on given criteria
+
+* `group_by`: groups rows based on criteria in other columns
+
+* `summarize`: summarizes column values
+
+* `%>%`: pipe-symbol that can be read as *and then*
+
+These functions are important because you wil frequently have to change the data so that you can visualize it. We will try these function out below.
+
+**Example**
+
+```{r}
+myxlsx %>% # take the myxlsx data and then
+  # create a new column called Preps that contains the frequencies of Preposition divided by 100 
+  mutate(Preps = Prepositions/100) %>% # and then
+  # only keep rows with Preps values higher than 1
+  filter(Preps > 1) %>% # and then
+  # only retain the columns Preps, DateRedux, and GenreRedux
+  select(Preps, DateRedux, GenreRedux) -> newdata # store the results in an object called newdata
+# inspect newdata
+head(newdata)
+```
+
+
+
 
 # Getting started with ggplot2{-}
 
@@ -135,79 +286,14 @@ For everything to work, please do the following:
 
 
 
-### The ggplot framework{-}
+### About ggplot{-}
 
-The *ggplot* environment was written by [Hadley Wickham](http://hadley.nz/) and it combines the positive aspects of both the *base* and the *lattice* package. It was first publicized in the *gplot* and *ggplot1* packages but the latter was soon repackaged and improved in the now most widely used package for data visualization: the *ggplot2* package. The *ggplot* environment implements a philosophy of graphic design described in builds on *The Grammar of Graphics* by Leland Wilkinson [@wilkinson2012grammar].
+The *ggplot* environment was written by [Hadley Wickham](http://hadley.nz/) and it combines the positive aspects of both the *base* and the *lattice* packages. The *ggplot* environment implements a philosophy of graphic design described in builds on *The Grammar of Graphics* by Leland Wilkinson [@wilkinson2012grammar].
 
 The philosophy of *ggplot2* is to consider graphics as consisting out of basic elements (called *aesthetics* and they include, for instance, the data set to be plotted and the axes) and layers that overlaid onto the aesthetics. The idea of the *ggplot2* package can be summarized as taking "care of many of the fiddly details that make plotting a hassle (like drawing legends) as well as providing a powerful model of graphics that makes it easy to produce complex multi-layered graphics."
 
 Thus, ggplots typically start with the function call (`ggplot`) followed by the specification of the data, then the aesthetics (`aes`), and then a specification of the type of plot that is created (`geom_line` for line graphs, `geom_box` for box plots, `geom_bar` for bar graphs, `geom_text` for text, etc.). In addition, ggplot allows to specify all elements that the graph consists of (e.g. the theme and axes)
 
-As the ggplot framework has become the dominant way to create visualizations in R, we will only focus on this framework in the following practical examples.
-
-## Preparation and session set up{-}
-
-This tutorial is based on R. If you have not installed R or are new to it, you will find an introduction to and more information how to use R [here](https://slcladal.github.io/intror.html). For this tutorials, we need to install certain *packages* from an R *library* so that the scripts shown below are executed without errors. Before turning to the code below, please install the packages by running the code below this paragraph. If you have already installed the packages mentioned below, then you can skip ahead and ignore this section. To install the necessary packages, simply run the following code - it may take some time (between 1 and 5 minutes to install all of the libraries so you do not need to worry if it takes some time).
-
-```{r prep1, eval = F, warning = F, message = F}
-# install packages
-install.packages("knitr")
-install.packages("lattice")
-install.packages("tidyverse")
-install.packages("vcd")
-install.packages("SnowballC")
-install.packages("tidyr")
-install.packages("gridExtra")
-install.packages("DT")
-install.packages("flextable")
-```
-
-Now that we have installed the packages, we activate them as shown below.
-
-```{r prep2, message=FALSE, warning=FALSE, class.source='klippy'}
-# set options
-options(stringsAsFactors = F)          # no automatic data transformation
-options("scipen" = 100, "digits" = 12) # suppress math annotation
-# activate packages
-library(knitr)
-library(lattice)
-library(tidyverse)
-library(tidyr)
-library(gridExtra)
-library(knitr)
-library(DT)
-library(flextable)
-# activate klippy for copy-to-clipboard button
-klippy::klippy()
-```
-
-Once you have installed R and RStudio and initiated the session by executing the code shown above, you are good to go.
-
-# Getting started{-}
-
-Before turning to the graphs, we briefly inspect the data which is called `pdat` and it is based on the [*Penn Parsed Corpora of Historical English*](https://www.ling.upenn.edu/hist-corpora/) (PPC). The data contains the date when a text was written (`Date`), the genre of the text (`Genre`), the name of the text (`Text`), the relative frequency of prepositions in the text (`Prepositions`), and the region in which the text was written (`Region`). Furthermore, `GenreRedux` collapses the existing genres into five main categories (*Conversational*, *Religious*, *Legal*, *Fiction*, and *NonFiction*) while `DateRedux` collapses the dates when the texts were composed into five main periods (1150-1499, 1500-1599, 1600-1699, 1700-1799, and 1800-1913). We also factorize non-numeric variables. 
-
-```{r prep3, message=FALSE, warning=FALSE}
-# load data
-pdat  <- base::readRDS(url("https://slcladal.github.io/data/pvd.rda", "rb"))
-```
-
-Let's briefly inspect the data.
-
-```{r prep5, echo = F}
-# inspect data
-pdat %>%
-  as.data.frame() %>%
-  head(15) %>%
-  flextable::flextable() %>%
-  flextable::set_table_properties(width = .95, layout = "autofit") %>%
-  flextable::theme_zebra() %>%
-  flextable::fontsize(size = 12) %>%
-  flextable::fontsize(size = 12, part = "header") %>%
-  flextable::align_text_col(align = "center") %>%
-  flextable::set_caption(caption = "First 15 rows of the pdat data.")  %>%
-  flextable::border_outer()
-```
 
 We will now turn to creating the graphs.
 
