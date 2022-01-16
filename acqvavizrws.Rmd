@@ -65,18 +65,21 @@ Before attending the workshop, you need to install the following packages in RSt
 
 * `installr` (for updating R)
 
+* `gridExtra` for multiple plots in one window
+
 
 
 You can install these packages by clicking on `packages` on the top of the lower right pane in RStudio or you can execute the following code in the lower left, `Console` pane of RStudio. 
 
-```{r}
+```{r install, eval = F, message=F, warning=F}
 # update R
-install.packages("installr")
-library(installr)
-updateR()
+#install.packages("installr")
+#library(installr)
+#updateR()
 # install required packages
 install.packages(c("tidyverse", "here", "vcd", "likert", "knitr", 
-                   "markdown", "rmarkdown"), dependencies = T)
+                   "markdown", "rmarkdown", "gridExtra", "lme4", "sjPlot"), 
+                 dependencies = T)
 ```
 
 
@@ -143,10 +146,12 @@ For everything to work, please do the following:
 
 * In that folder, create two subfolders called *data* and *images*
 
-* Open RStudio, go to File > New Project > 
+* Open RStudio, go to File > New Project > Existing Directory (Browse to project folder) > Create (and hit Enter)
+
+This will then create an R Project in the project folder.
 
 
-# Primer{-}
+## Primer{-}
 
 We start by creating a super simple graph in base R just to get you going and showing you that creating graphs can be very easy.
 
@@ -154,7 +159,7 @@ So for your first graph, we will create some data and then visualize it - we do 
 
 To execute the code, simply click on the *Play* button in the top right corner of the code box.
 
-```{r primer}
+```{r primer, message=FALSE, warning=FALSE}
 # generate two variables (x and y)
 x <- sample(seq(0, 1, 0.01), 100) # draw a sample of 100 from numbers between 0 and 1
 y <- rep(c("Group A", "Group B"), each = 50) # create a vector of 100 representing 2 groups
@@ -169,17 +174,20 @@ Yay! You created a nice boxplot in R. As you can see, generating graphs in R can
 
 And you can use base R to create graphs! In this tutorial, I want to show you how to generate graphs that are prettier but the code is also a bit more complex.
 
-# Session preparation{-}
+## Session preparation{-}
 
 Now, we start by preparing the session. We do this by loading the packages we need as shown below.
 
-```{r prep}
+```{r prep, message=F, warning=F}
 # load packages
 library(tidyverse)
 library(here)
 library(readxl)
 library(vcd)
 library(likert)
+library(gridExtra)
+library(lme4)
+library(sjPlot)
 ```
 
 Once you have executed the code 
@@ -200,9 +208,9 @@ Let's load the data files and inspect the output. The data files should be in th
 
 When we load data into R, we need to specify where R is supposed to load the file from. A handy way to do this is to use the `here` function (from  the a package also called `here`).
 
-```{r}
+```{r loadxlsx, message=F, warning=F}
 # load xlsx data
-myxlsx <- readxl::read_xlsx(here::here("data", "sampledata.xlsx"), sheet = 1)
+myxlsx <- readxl::read_xlsx(here::here("data", "data_german.xlsx"), sheet = 1)
 # inspect data (the head function shows the first 6 rows of a table or data frame)
 head(myxlsx)
 ```
@@ -211,27 +219,28 @@ The data set consists of 7 columns (*Date*, *Genre*, *Text*, *Prepositions*, *Re
 
 ## Load csv-file{-}
 
-```{r}
+```{r loadcsv, message=F, warning=F}
 # load csv file
-mycsv <- read.csv(here::here("data", "sampledata.csv"))
+mycsv <- read.csv(here::here("data", "data_german.csv"))
 # inspect data
 head(mycsv)
 ```
 
 ## Load txt-file{-}
 
-```{r}
-# load xlsx data
-mytxt <- read.delim(here::here("data", "sampledata.txt"), sep = "\t")
+```{r loadtxt, message=F, warning=F}
+# load txt file
+mytxt <- read.delim(here::here("data", "data_german.txt"), sep = "\t")
 # inspect data
 head(mytxt)
 ```
 
+
 ## Load rda-file{-}
 
-```{r}
+```{r loadrda, message=F, warning=F}
 # load xlsx data
-myrda <- readRDS(here::here("data", "sampledata.rda"))
+myrda <- readRDS(here::here("data", "data_german.rda"))
 # inspect data
 head(myrda)
 ```
@@ -250,14 +259,18 @@ Now that we have loaded the data, we will go over a few, very basic procedures f
 
 * `summarize`: summarizes column values
 
+* `spread`: split values of a column and spread it across columns
+
+* `gather`: take values of several columns and combine them into a single column 
+
 * `%>%`: pipe-symbol that can be read as *and then*
 
 These functions are important because you wil frequently have to change the data so that you can visualize it. We will try these function out below.
 
 **Example**
 
-```{r}
-myxlsx %>% # take the myxlsx data and then
+```{r dpro1, eval = F, message=F, warning=F}
+mytxt %>% # take the myxlsx data and then
   # create a new column called Preps that contains the frequencies of Preposition divided by 100 
   mutate(Preps = Prepositions/100) %>% # and then
   # only keep rows with Preps values higher than 1
@@ -268,25 +281,35 @@ myxlsx %>% # take the myxlsx data and then
 head(newdata)
 ```
 
+We can also group and summarize the data now.
+
+```{r dpro2, eval = F, message=F, warning=F}
+newdata %>%
+  group_by(GenreRedux, DateRedux) %>%
+  summarise(N = n(),
+            Preps = mean(Preps)) -> newdata2
+# inspect
+newdata2
+```
+
+
+
+Now, we have the number of observations and the mean frequency of Prepositions for each combination or *DateRedux* and *GenreRedux*.
+
+```{r, eval = F, message=FALSE, warning=FALSE}
+newdata2 %>%
+  dplyr::mutate(DateRedux = as.factor(DateRedux)) %>%
+  dplyr::group_by(DateRedux) %>%
+  dplyr::summarise(Means = mean(Preps)) -> newdata3
+# inspect
+newdata3
+```
 
 
 
 # Getting started with ggplot2{-}
 
-# Modifying plots{-}
-
-# Mosaic plots with vcd{-}
-
-# Visualizing Likert data{-}
-
-# Wrap-up{-}
-
-
-
-
-
-
-### About ggplot{-}
+**About ggplot**
 
 The *ggplot* environment was written by [Hadley Wickham](http://hadley.nz/) and it combines the positive aspects of both the *base* and the *lattice* packages. The *ggplot* environment implements a philosophy of graphic design described in builds on *The Grammar of Graphics* by Leland Wilkinson [@wilkinson2012grammar].
 
@@ -295,425 +318,661 @@ The philosophy of *ggplot2* is to consider graphics as consisting out of basic e
 Thus, ggplots typically start with the function call (`ggplot`) followed by the specification of the data, then the aesthetics (`aes`), and then a specification of the type of plot that is created (`geom_line` for line graphs, `geom_box` for box plots, `geom_bar` for bar graphs, `geom_text` for text, etc.). In addition, ggplot allows to specify all elements that the graph consists of (e.g. the theme and axes)
 
 
-We will now turn to creating the graphs.
+**We will now turn to creating the graphs**
 
-# Creating a simple graph{-}
 
 When creating a visualization with ggplot, we first use the function `ggplot` and define the data that the visualization will use, then, we define the aesthetics which define the layout, i.e. the x- and y-axes. 
 
-```{r plot1}
-ggplot(pdat, aes(x = Date, y = Prepositions))
+```{r plot1, message=FALSE, warning=FALSE}
+ggplot(myxlsx, aes(x = accent_response, y = age_months))
 ```
 
-In a next step, we add the geom-layer which defines the type of visualization that we want to display. In this case, we use `geom_point` as we want to show points that stand for the frequencies of prepositions in each text. Note that we add the geom-layer by adding a `+` at the end of the line!
+## Box Plots{-}
 
-```{r plot2}
-ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  geom_point()
+In a next step, we add the geom-layer which defines the type of visualization that we want to display. In this case, we use `geom_boxplot` as we want to show boxes. Note that we add the geom-layer by adding a `+` at the end of the line!
+
+```{r box01, message=FALSE, warning=FALSE}
+ggplot(myxlsx, aes(x = accent_response, y = age_months)) +
+  geom_boxplot()
 ```
 
-We can also add another layer, e.g. a layer which shows a smoothed loess line, and we can change the theme by specifying the theme we want to use. Here, we will use `theme_bw` which stands for the black-and-white theme (we will get into the different types of themes later).
+### Saving plots{-}
 
-```{r plot3, message=F, warning=F}
-ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  geom_point() +
-  geom_smooth(se = F) +
+We can use the `ggsave` function to save plots to your computer.
+
+```{r saveplot, message=FALSE, warning=FALSE}
+ggsave(here::here("images", "myfirstggplot.png"))
+```
+
+
+Another way of doing this: piping
+
+Prettifying the plot
+
+* Get rid of NAs
+
+```{r box02, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+ggplot(aes(x = accent_response, y = age_months)) +
+  geom_boxplot()
+```
+
+* Reorder accent_response
+
+```{r box03, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months)) +
+  geom_boxplot()
+```
+
+* Changing axes-lables
+
+```{r box04, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)")
+```
+
+* Add color
+
+```{r box05, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)")
+```
+
+* Change background to white
+
+```{r box06, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
   theme_bw()
 ```
 
-We can also store our plot in an object and then add different layers to it or modify the plot. Here we store the basic graph in an object that we call `p` and then change the axes names.  
+* Move legend to the top
 
-```{r plot4}
-p <- ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  geom_point()
-p + labs(x = "Year", y = "Frequency")
+```{r box07, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
+  theme_bw() +
+  theme(legend.position = "top") +
+  guides(fill=guide_legend(title="Levels of Accent"))
 ```
 
-We can also integrate plots into data processing pipelines as shown below. When you integrate visualizations into pipelines, you should not specify the data as it is clear from the pipe which data the plot is using.
+* Change axes limits
 
-```{r plot5, message=F, warning=F}
-pdat %>%
-  dplyr::select(DateRedux, GenreRedux, Prepositions) %>%
-  dplyr::group_by(DateRedux, GenreRedux) %>%
-  dplyr::summarise(Frequency = mean(Prepositions)) %>%
-    ggplot(aes(x = DateRedux, y = Frequency, group = GenreRedux, color = GenreRedux)) +
-    geom_line()
+```{r box08, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
+  theme_bw() +
+  theme(legend.position = "top") +
+  guides(fill=guide_legend(title="Levels of Accent")) +
+  coord_cartesian(x = c(0.5, 3.5),
+                  y = c(0, 150))
 ```
 
-# Modifying axes and titles{-}
+* Change colors
 
-There are different way to modify axes, the easiest way is to specify the axes labels using `labs` (as already shown above). To add a custom title, we can use `ggtitle`.
-
-```{r axes1}
-p + labs(x = "Year", y = "Frequency") +
-  ggtitle("Preposition use over time", subtitle="based on the PPC corpus")
-```
-
-To change the range of the axes, we can specify their limits in the `coord_cartesian` layer.
-
-```{r axes2}
-p + coord_cartesian(xlim = c(1000, 2000), ylim = c(-100, 300))
-```
-
-```{r axes3}
-p <- ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  geom_point() + 
-  labs(x = "Year", y = "Frequency")
-p + theme(axis.text.x = element_text(face="italic", color="red", size=8, angle=45),
-          axis.text.y = element_text(face="bold", color="blue", size=15, angle=90))
-```
-
-
-```{r axes4}
-p + theme(
-  axis.text.x = element_blank(),
-  axis.text.y = element_blank(),
-  axis.ticks = element_blank())
-```
-
-
-```{r axes5, message=F, warning=F}
-p + scale_x_discrete(name ="Year of composition", limits=seq(1150, 1900, 50)) +
-  scale_y_discrete(name ="Relative Frequency", limits=seq(70, 190, 20))
-```
-
-
-
-# Modifying colors{-}
-
-To modify colors, you can include a color specification in the main aesthetics.
-
-```{r colors1}
-ggplot(pdat, aes(x = Date, y = Prepositions, color = GenreRedux)) +
-  geom_point() 
-```
-
-Or you can specify the color in the aesthetics of the geom-layer.
-
-```{r colors2}
-p + geom_point(aes(color = GenreRedux))
-```
-
-To change the default colors manually, you can use `scale_color_manual` and define the colors you want to use in the `values` argument and specify the variable levels that want to distinguish by colors in the `breaks` argument. You can find an overview of the colors that you can define in R [here](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf).
-
-
-```{r colors3}
-ggplot(pdat, aes(x = Date, y = Prepositions, color = GenreRedux)) +
-  geom_point()  + 
-  scale_color_manual(values = c("red", "gray30", "blue", "orange", "gray80"),
-                       breaks = c("Conversational", "Fiction", "Legal", "NonFiction", "Religious"))
-```
-
-When the variable that you want to colorize does not have discrete levels, you use `scale_color_continuous` instead of `scale_color_manual`.
-
-```{r colors4}
-p + geom_point(aes(color = Prepositions)) + 
-  scale_color_continuous()
-```
-
-You can also change colors by specifying color `palettes`. Color `palettes` are predefined vectors of colors and there are many different color `palettes` available. Below are some examples using the `Brewer` color palette.
-
-```{r colors5}
-p + geom_point(aes(color = GenreRedux)) + 
-  scale_color_brewer()
-```
-
-```{r colors6}
-p + geom_point(aes(color = GenreRedux)) + 
-  scale_color_brewer(palette = 2)
-```
-
-```{r colors7}
-p + geom_point(aes(color = GenreRedux)) + 
-  scale_color_brewer(palette = 3)
+```{r box09, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
+  theme_bw() +
+  theme(legend.position = "top") +
+  guides(fill=guide_legend(title="Levels of Accent")) +
+  coord_cartesian(x = c(0.5, 3.5),
+                  y = c(0, 150)) +
+  scale_fill_manual(values = c("red", "blue", "gray"))
 ```
 
 
-We now use the `viridis` color palette to show how you can use another palette. The example below uses the viridis palette for a discrete variable (GenreRedux).
+What if we want to include another factor?
 
-```{r colors8}
-p + geom_point(aes(color = GenreRedux)) + 
-  scale_color_viridis_d()
+```{r box10, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
+  theme_bw() +
+  theme(legend.position = "top") +
+  guides(fill=guide_legend(title="Levels of Accent")) +
+  coord_cartesian(x = c(0.5, 3.5),
+                  y = c(0, 150)) +
+  scale_fill_manual(values = c("red", "blue", "gray"))  + 
+  facet_grid(~family)
 ```
 
-To use the viridis palette for continuous variables you need to use `scale_color_viridis_c` instead of `scale_color_viridis_d`.
+* Change direction of axes tick-marks
 
-```{r colors9}
-p + geom_point(aes(color = Prepositions)) + 
-  scale_color_viridis_c()
+```{r box11, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
+  theme_bw() +
+  theme(legend.position = "top",
+        axis.text.x = element_text(size=8, angle=90)) +
+  guides(fill=guide_legend(title="Levels of Accent")) +
+  coord_cartesian(x = c(0.5, 3.5),
+                  y = c(0, 150)) +
+  scale_fill_manual(values = c("red", "blue", "gray"))  + 
+  facet_grid(~family)
 ```
 
-The `Brewer` color palette (see below) is the most commonly used color palette but there are many more. You can find an overview of the color palettes that are available [here](https://www.datanovia.com/en/blog/top-r-color-palettes-to-know-for-great-data-visualization/).
+* Change header of legend
 
-```{r colors10}
-library(RColorBrewer)
-display.brewer.all()
+
+```{r box12, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
+                            family == "bil-rus" ~ "Bilingual Russian",
+                            family == "mono-de" ~ "Monolingual German",
+                            TRUE ~ family),
+         accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
+  geom_boxplot() +
+  labs(x = "Accent Rating",
+       y = "Age (in months)") +
+  theme_bw() +
+  theme(legend.position = "top",
+        axis.text.x = element_text(size=8, angle=90)) +
+  guides(fill=guide_legend(title="Levels of Accent")) +
+  coord_cartesian(x = c(0.5, 3.5),
+                  y = c(0, 150)) +
+  scale_fill_manual(values = c("red", "blue", "gray"))  + 
+  facet_grid(~family)
+```
+
+* Save plot
+
+```{r boxsave, message=FALSE, warning=FALSE}
+ggsave(here::here("images", "myniceggplot.png"))
 ```
 
 
-# Modifying lines & symbols{-}
+## Line Plots{-}
 
-```{r shape1}
-ggplot(pdat, aes(x = Date, y = Prepositions, shape = GenreRedux)) +
-  geom_point() 
+When you want to create different types of plots (scatter plot, line plot, box plot, bar chart, etc.), you can do this by changing the *geom* as shown below. **You need to be careful though because not all plot types work for all types of variables. For instance, a box plot requires a categorical variable (typically on the x-axis) and a numeric variable (typically a frequency shown on the y-axis).**
+
+
+Prepare data
+
+```{r line01, message=FALSE, warning=FALSE}
+linedat <- myxlsx %>%
+  drop_na() %>%
+  mutate(age_cat = case_when(age_months < 60 ~ "41-60",
+                             age_months < 70 ~ "61-70",
+                             age_months < 80 ~ "71-80",
+                             age_months < 90 ~ "81-90",
+                             age_months < 100 ~ "91-100",
+                             age_months < 110 ~ "101-110",
+                             age_months < 120 ~ "111-120"),
+         age_cat = factor(age_cat, levels = c("41-60", "61-70", "71-80", "81-90", 
+                                              "91-100", "101-110", "111-120"))) %>%
+  group_by(family, age_cat) %>%
+  summarise(accent_numeric = mean(accent_numeric))
 ```
 
-```{r shape2}
-ggplot(pdat, aes(x = Date, y = Prepositions)) + 
-  geom_point(aes(shape = GenreRedux)) + 
-  scale_shape_manual(values = 1:5)
-```
+Generate plot
 
-Similarly, if you want to change the lines in a line plot, you define the `linetype` in the aesthetics.
-
-```{r shape3, message=F, warning=F}
-pdat %>%
-  dplyr::select(GenreRedux, DateRedux, Prepositions) %>%
-  dplyr::group_by(GenreRedux, DateRedux) %>%
-  dplyr::summarize(Frequency = mean(Prepositions)) %>%
-  ggplot(aes(x = DateRedux, y = Frequency, group = GenreRedux, linetype = GenreRedux)) +
+```{r line02, message=FALSE, warning=FALSE}
+linedat  %>%
+  ggplot(aes(x = age_cat, y = accent_numeric, 
+                   group = family, color = family)) +
   geom_line()
 ```
 
-You can of course also manually specify the line types.
+Prettify plot
 
-```{r shape4}
-pdat %>%
-  dplyr::select(GenreRedux, DateRedux, Prepositions) %>%
-  dplyr::group_by(GenreRedux, DateRedux) %>%
-  dplyr::summarize(Frequency = mean(Prepositions)) %>%
-  ggplot(aes(x = DateRedux, y = Frequency, group = GenreRedux, linetype = GenreRedux)) +
-  geom_line() +
-  scale_linetype_manual(values = c("twodash", "longdash", "solid", "dotted", "dashed"))
+* add different line types
+* increase thickness of lines
+
+```{r line03, message=FALSE, warning=FALSE}
+linedat %>%
+  ggplot(aes(x = age_cat, y = accent_numeric, 
+                   group = family, color = family, linetype = family)) +
+  geom_line(size = 1.5)
 ```
 
-Here is an overview of the most commonly used linetypes in R.
+* white background
+* change axes labels
 
-```{r shape5}
-d=data.frame(lt=c("blank", "solid", "dashed", "dotted", "dotdash", "longdash", "twodash", "1F", "F1", "4C88C488", "12345678"))
-ggplot() +
-scale_x_continuous(name="", limits=c(0,1)) +
-scale_y_discrete(name="linetype") +
-scale_linetype_identity() +
-geom_segment(data=d, mapping=aes(x=0, xend=1, y=lt, yend=lt, linetype=lt))
+```{r line04, message=FALSE, warning=FALSE}
+linedat %>%
+  ggplot(aes(x = age_cat, y = accent_numeric, 
+                   group = family, color = family, linetype = family)) +
+  geom_line(size = 1.5) +
+  theme_bw() +
+  labs(x = "Age", y = "Accent strength rating")
 ```
 
-To make your layers transparent, you need to specify `alpha` values.
+* legend at top
+* change y-axis tick labels
 
-```{r shape6}
-ggplot(pdat, aes(x = Date, y = Prepositions)) + 
-  geom_point(alpha = .2)
+```{r line05, message=FALSE, warning=FALSE}
+linedat %>%
+  ggplot(aes(x = age_cat, y = accent_numeric, 
+                   group = family, color = family, linetype = family)) +
+  geom_line(size = 1.5) +
+  theme_bw() +
+  labs(x = "Age", y = "Accent strength rating") +
+  theme(legend.position = "top") +
+  scale_y_discrete(name ="Accent strength rating", 
+                   limits = seq(0, 2, 1), 
+                   labels = c("No accent", "Weak accent", "Strong accent"))
 ```
 
-Transparency can be particularly useful when using different layers that add different types of visualizations.
+* change legend text
 
-
-```{r shape7, message=F, warning=F}
-ggplot(pdat, aes(x = Date, y = Prepositions)) + 
-  geom_point(alpha = .1) + 
-  geom_smooth(se = F)
+```{r line06, message=FALSE, warning=FALSE}
+linedat %>%
+    mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
+                              family == "bil-rus" ~ "Bilingual Russian",
+                              family == "mono-de" ~ "Monolingual German",
+                              TRUE ~ family)) %>%
+  ggplot(aes(x = age_cat, y = accent_numeric, 
+                   group = family, color = family, linetype = family)) +
+  geom_line(size = 1.5) +
+  theme_bw() +
+  labs(x = "Age", y = "Accent strength rating") +
+  theme(legend.position = "top") +
+  scale_y_discrete(name ="Accent strength rating", 
+                   limits = seq(0, 2, 1), 
+                   labels = c("No accent", "Weak accent", "Strong accent")) +
+    guides(linetype=guide_legend(title="Family type"),
+         color=guide_legend(title="Family type"))
 ```
 
-Transparency can also be linked to other variables.
+Save plot
 
-```{r shape8, message=F, warning=F}
-ggplot(pdat, aes(x = Date, y = Prepositions, alpha = Region)) + 
-  geom_point()
-```
-```{r shape9}
-ggplot(pdat, aes(x = Date, y = Prepositions, alpha = Prepositions)) + 
-  geom_point()
-```
-
-# Adapting sizes{-}
-
-```{r size1, message=F, warning=F}
-ggplot(pdat, aes(x = Date, y = Prepositions, size = Region, color = GenreRedux)) +
-  geom_point() 
-```
-
-```{r size2}
-ggplot(pdat, aes(x = Date, y = Prepositions, color = GenreRedux, size = Prepositions)) +
-  geom_point() 
-```
-
-
-# Adding text{-}
-
-```{r text1}
-pdat %>%
-  dplyr::filter(Genre == "Fiction") %>%
-  ggplot(aes(x = Date, y = Prepositions, label = Prepositions, color = Region)) +
-  geom_text(size = 3) +
-  theme_bw()
-```
-
-```{r text2}
-pdat %>%
-  dplyr::filter(Genre == "Fiction") %>%
-  ggplot(aes(x = Date, y = Prepositions, label = Prepositions)) +
-  geom_text(size = 3, hjust=1.2) +
-  geom_point() +
-  theme_bw()
-```
-```{r text3}
-pdat %>%
-  dplyr::filter(Genre == "Fiction") %>%
-  ggplot(aes(x = Date, y = Prepositions, label = Prepositions)) +
-  geom_text(size = 3, nudge_x = -15, check_overlap = T) +
-  geom_point() +
-  theme_bw()
+```{r aveline, message=FALSE, warning=FALSE}
+ggsave(here::here("images", "niceline.png"))
 ```
 
 
-```{r text4}
-pdat %>%
-  dplyr::filter(Genre == "Fiction") %>%
-  ggplot(aes(x = Date, y = Prepositions, label = Prepositions)) +
-  geom_text(size = 3, nudge_x = -15, check_overlap = T) +
-  geom_point() +
-  theme_bw()
+## Smoothed Line Plots{-}
+
+2 numeric variable a or 1 numeric (y) and 1 categorical
+
+Generate basic plot
+
+```{r smooth01, message=FALSE, warning=FALSE}
+ggplot(myxlsx, aes(x = age_months, y = accent_numeric, 
+                   group = family, color = family, fill = family)) +
+  geom_smooth()
+```
+
+### Exercise; Prettifying the plot{-}
+
+
+Based on what you learned before, can you make the plot "nicer"?
+Please change the following:
+
+* Axes labels
+* Background color
+* Line and fill color
+* Legend position
+* legend title
+* y-axis tick labels
+
+The final plot should look sth like this:
+
+```{r smooth02, eval = T, echo = F, message=FALSE, warning=FALSE}
+myxlsx %>%
+  drop_na() %>%
+  mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
+                            family == "bil-rus" ~ "Bilingual Russian",
+                            family == "mono-de" ~ "Monolingual German",
+                            TRUE ~ family),
+         accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
+  ggplot(aes(x = age_months, y = accent_numeric, 
+                   group = family, color = family, fill = family)) +
+  geom_smooth() +
+  labs(x = "Age of child\n(in months)") +
+  theme_bw() +
+  scale_color_manual(values = c("orange", "gray", "lightblue")) +
+  scale_fill_manual(values = c("orange", "gray", "lightblue")) +
+  theme(legend.position = "top") +
+  guides(fill=guide_legend(title="Family type"),
+         color=guide_legend(title="Family type")) +
+  scale_y_discrete(name ="Accent strength rating", 
+                   limits = seq(0, 2, 1), 
+                   labels = c("No accent", "Weak accent", "Strong accent"))
+ggsave(here::here("images", "nicesmooth.png"))
 ```
 
 
-```{r text5}
-ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  geom_point() +
-  ggplot2::annotate(geom = "text", label = "Some text", x = 1200, y = 175, color = "orange") +
-  ggplot2::annotate(geom = "text", label = "More text", x = 1850, y = 75, color = "lightblue", size = 8) +
-    theme_bw()
+
+## Bar Chart{-}
+
+One categorical variable.
+
+
+Generate basic plot
+
+```{r bar01, message=FALSE, warning=FALSE}
+ggplot(myxlsx, aes(x = family)) +
+  geom_bar(stat = "count")
 ```
 
+Alternative: show pre-calculated frequencies
 
-```{r text6}
-pdat %>%
-  dplyr::group_by(GenreRedux) %>%
-  dplyr::summarise(Frequency = round(mean(Prepositions), 1)) %>%
-  ggplot(aes(x = GenreRedux, y = Frequency, label = Frequency)) +
-  geom_bar(stat="identity") +
-  geom_text(vjust=-1.6, color = "black") +
-  coord_cartesian(ylim = c(0, 180)) +
-  theme_bw()
+Prepare data
+
+```{r bar02, message=FALSE, warning=FALSE}
+bardata <- myxlsx %>%
+  mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
+                            family == "bil-rus" ~ "Bilingual Russian",
+                            family == "mono-de" ~ "Monolingual German",
+                            TRUE ~ family)) %>%
+  group_by(family) %>%
+  summarise(Frequency = n()) %>%
+  ungroup() %>%
+  mutate(Total = sum(Frequency)) %>%
+  rowwise() %>%
+  mutate(Percent = round(Frequency/Total *100, 1),
+         Label = paste0(Frequency, " (", Percent, "%)")) %>%
+  select(-Total)
+# check data
+bardata
 ```
 
+1 numeric and 1 categorical variable
 
 
-```{r text7}
-pdat %>%
-  dplyr::group_by(Region, GenreRedux) %>%
-  dplyr::summarise(Frequency = round(mean(Prepositions), 1)) %>%
-  ggplot(aes(x = GenreRedux, y = Frequency, group = Region, fill = Region, label = Frequency)) +
-  geom_bar(stat="identity", position = "dodge") +
-  geom_text(vjust=1.6, position = position_dodge(0.9)) + 
-  theme_bw()
+```{r bar03, message=FALSE, warning=FALSE}
+ggplot(bardata, aes(x = family, y = Frequency)) +
+  geom_bar(stat = "identity")
 ```
 
+Prettify plot
 
-```{r text8}
-pdat %>%
-  dplyr::filter(Genre == "Fiction") %>%
-  ggplot(aes(x = Date, y = Prepositions, label = Prepositions)) +
-  geom_label(size = 3, vjust=1.2) +
-  geom_point() +
-  theme_bw()
-```
+* change background
+* modify axes labels
+* change color/filling
+* remove legend
 
 
-# Combining multiple plots{-}
-
-```{r combine1}
-ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  facet_grid(~GenreRedux) +
-  geom_point() + 
-  theme_bw()
-```
-
-```{r combine2}
-ggplot(pdat, aes(x = Date, y = Prepositions)) +
-  facet_wrap(vars(Region, GenreRedux), ncol = 5) +
-  geom_point() + 
-  theme_bw()
-```
-
-```{r combine3}
-p1 <- ggplot(pdat, aes(x = Date, y = Prepositions)) + geom_point() + theme_bw()
-p2 <- ggplot(pdat, aes(x = GenreRedux, y = Prepositions)) + geom_boxplot() + theme_bw()
-p3 <- ggplot(pdat, aes(x = DateRedux, group = GenreRedux)) + geom_bar() + theme_bw()
-p4 <- ggplot(pdat, aes(x = Date, y = Prepositions)) + geom_point() + geom_smooth(se = F) + theme_bw()
-grid.arrange(p1, p2, nrow = 1)
-```
-
-```{r combine4, message=F, warning=F}
-grid.arrange(grobs = list(p4, p2, p3), 
-             widths = c(2, 1), 
-             layout_matrix = rbind(c(1, 1), c(2, 3)))
-```
-
-# Available themes{-}
-
-```{r theme1}
-p <- ggplot(pdat, aes(x = Date, y = Prepositions)) + geom_point() + labs(x = "", y= "") +
-  ggtitle("Default") + theme(axis.text.x = element_text(size=6, angle=90))
-p1 <- p + theme_bw() + ggtitle("theme_bw") + theme(axis.text.x = element_text(size=6, angle=90))
-p2 <- p + theme_classic() + ggtitle("theme_classic") + theme(axis.text.x = element_text(size=6, angle=90))
-p3 <- p + theme_minimal() + ggtitle("theme_minimal") + theme(axis.text.x = element_text(size=6, angle=90))
-p4 <- p + theme_light() + ggtitle("theme_light") + theme(axis.text.x = element_text(size=6, angle=90))
-p5 <- p + theme_dark() + ggtitle("theme_dark") + theme(axis.text.x = element_text(size=6, angle=90))
-p6 <- p + theme_void() + ggtitle("theme_void") + theme(axis.text.x = element_text(size=6, angle=90))
-p7 <- p + theme_gray() + ggtitle("theme_gray") + theme(axis.text.x = element_text(size=6, angle=90))
-grid.arrange(p, p1, p2, p3, p4, p5, p6, p7, ncol = 4)
-```
-
-
-```{r theme2}
-ggplot(pdat, aes(x = Date, y = Prepositions, color = GenreRedux)) +
-  geom_point() + 
-  theme(panel.background = element_rect(fill = "white", colour = "red"))
-```
-
-Extensive information about how to modify themes can be found  [here](https://ggplot2.tidyverse.org/reference/theme.html).
-
-# Modifying legends{-}
-
-```{r legend1}
-ggplot(pdat, aes(x = Date, y = Prepositions, color = GenreRedux)) +
-  geom_point() + 
-  theme(legend.position = "top")
-```
-
-```{r legend2}
-ggplot(pdat, aes(x = Date, y = Prepositions, color = GenreRedux)) +
-  geom_point() + 
+```{r bar04, message=FALSE, warning=FALSE}
+ggplot(bardata, aes(x = family, y = Frequency, fill = family)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Family Type", y = "Raw Frequency") +
   theme(legend.position = "none")
 ```
 
-```{r legend3}
-ggplot(pdat, aes(x = Date, y = Prepositions, linetype = GenreRedux, color = GenreRedux)) +
-  geom_smooth(se = F) +  
-  theme(legend.position = c(0.2, 0.7)) 
+* adapt axis range
+* Add text/annotation
+
+```{r bar05, message=FALSE, warning=FALSE}
+ggplot(bardata, aes(x = family, y = Frequency, fill = family, label = Label)) +
+  geom_bar(stat = "identity") +
+  theme_bw() +
+  labs(x = "Family Type", y = "Raw Frequency") +
+  theme(legend.position = "none") +
+  coord_cartesian(ylim = c(0, 500)) +
+  geom_text(vjust=-1.5, position = position_dodge(0.9))
+```
+
+Save plot
+
+```{r savebar, message=FALSE, warning=FALSE}
+ggsave(here::here("images", "nicebar.png"))
 ```
 
 
-```{r legend4, message=F, warning=F}
-ggplot(pdat, aes(x = Date, y = Prepositions, linetype = GenreRedux, color = GenreRedux)) +
-  geom_smooth(se = F) + 
-  guides(color=guide_legend(override.aes=list(fill=NA))) +  
-  theme(legend.position = "top", 
-        legend.text = element_text(color = "green")) +
-  scale_linetype_manual(values=1:5, 
-                        name=c("Genre"),
-                        breaks = names(table(pdat$GenreRedux)),
-                        labels = names(table(pdat$GenreRedux))) + 
-  scale_colour_manual(values=c("red", "gray30", "blue", "orange", "gray80"),
-                      name=c("Genre"),
-                      breaks=names(table(pdat$GenreRedux)),  
-                      labels = names(table(pdat$GenreRedux)))
+
+
+
+## Mosaic plots with vcd{-}
+
+It can be really tricky to visualize several categorical variables simultaneously. As this is quite common, we will now learn to generate *mosaic plots*.
+
+To make the best use of a mosaic plot, we need to create a matrix.
+
+* Prepare data: generate matrix
+
+* prepare data: tidy format
+
+```{r mosaic01, message=F, warning=F}
+mosaicdat <- myxlsx %>%
+  dplyr::group_by(family, age_group, accent_response) %>%
+  dplyr::summarise(Frequency = n()) %>%
+  dplyr::ungroup() %>%
+  dplyr::mutate_if(is.character, factor)
+# inspect
+mosaicdat
 ```
+
+* split data
+
+```{r mosaic02, message=F, warning=F}
+mos1 <- mosaicdat %>%
+  dplyr::filter(family == "bil-mixed") %>%
+  dplyr::pull()
+mos2 <- mosaicdat %>%
+  dplyr::filter(family == "bil-rus") %>%
+  dplyr::pull()
+mos3 <- mosaicdat %>%
+  dplyr::filter(family == "mono-de") %>%
+  dplyr::pull()
+# inspect
+mos1
+```
+
+* Generate matrix
+
+```{r mosaic03, message=F, warning=F}
+# add dimnames
+row.names <- c("no", "s", "w")
+column.names <- c("preschool", "school")
+matrix.names <- c("bil-mixed", "bil-rus", "mono-de")
+# generate matrix
+mos_mx <- array(c(mos1, mos2, mos3), 
+                dim = c(3, 2, 3),
+                dimnames = list(row.names, 
+                                column.names,
+                                matrix.names))
+# inspect
+mos_mx
+```
+
+
+* basic mosaic plot
+
+```{r mosaic04, message=F, warning=F}
+mosaic(mos_mx,
+       shade = TRUE,
+       direction = c("h",  "v", "v"),
+       just_labels = c("center", "center", "center", "center"))
+```
+
+* save mosaic plot
+
+```{r mosaic05, message=F, warning=F}
+# open connection
+png(here::here("images", "mosaic.png"), width = 750, height = 300)
+# generate plot
+mosaic(mos_mx,
+       axis.cex = 15,
+       shade = TRUE,
+       direction = c("h",  "v", "v"),
+       just_labels = c("center", "center", "center", "center"))
+# close window
+dev.off() 
+```
+
+
+
+## Visualizing Likert data{-}
+
+Load data
+
+```{r likert01, message=FALSE, warning=FALSE}
+sdat  <- base::readRDS(url("https://slcladal.github.io/data/sdd.rda", "rb"))
+# inspect 
+head(sdat)
+```
+
+* clean column names
+
+```{r likert02, message=FALSE, warning=FALSE}
+# clean column names
+colnames(sdat)[3:ncol(sdat)] <- paste0("Q ", str_pad(1:10, 2, "left", "0"), ": ", colnames(sdat)[3:ncol(sdat)]) %>%
+  stringr::str_replace_all("\\.", " ") %>%
+  stringr::str_squish() %>%
+  stringr::str_replace_all("$", "?")
+# inspect column names
+colnames(sdat)
+```
+
+* replace numeric values with labels
+
+```{r likert03, message=FALSE, warning=FALSE}
+lbs <- c("disagree", "somewhat disagree", "neither agree nor disagree",  
+         "somewhat agree", "agree")
+survey <- sdat %>%
+  dplyr::mutate_if(is.character, factor) %>%
+  dplyr::mutate_if(is.numeric, factor, levels = 1:5, labels = lbs) %>%
+  drop_na() %>%
+  as.data.frame()
+# inspect
+head(survey)
+```
+
+
+```{r likert04, message=FALSE, warning=FALSE}
+plot(likert(survey[,3:12]), ordered = F, wrap= 30)
+```
+
+* save plot
+
+```{r likert05, message=FALSE, warning=FALSE}
+survey_p1 <- plot(likert(survey[,3:12]), ordered = F, wrap= 60)
+# save plot
+cowplot::save_plot(here("images", "stu_p1.png"), # where to save the plot
+                   survey_p1,        # object to plot
+                   base_asp = 1.5,  # ratio of space fro questions vs space for plot
+                   base_height = 8) # size! higher for smaller font size
+```
+
+* include groups
+
+```{r likert06, message=FALSE, warning=FALSE}
+# create plot
+survey_p2 <- plot(likert(survey[,3:8], grouping = survey[,1]))
+# save plot
+cowplot::save_plot(here("images", "stu_p2.png"), # where to save the plot
+                   survey_p2,        # object to plot
+                   base_asp = 1.5,  # ratio of space fro questions vs space for plot
+                   base_height = 8) # size! higher for smaller font size
+# show plot
+survey_p2
+```
+
+
+
+# Visualizing Model Effects{-}
+
+Load data
+
+```{r reg01, message=FALSE, warning=FALSE}
+regdat <- read.delim(here::here("data", "AJT_V2.csv"), sep = ";")
+# inspect data
+str(regdat)
+```
+
+Perform regression analysis
+
+```{r reg02, message=FALSE, warning=FALSE}
+library(lme4)
+library(sjPlot)
+# run model
+m0.glmer = glmer(Response_num ~ (1|ID), data = regdat, family = binomial)
+m6.glmer <- update(m0.glmer, .~.+Word_order+Sentence_type+Sentence_type*Group+Sentence_type*Word_order)
+# inspect results
+sjPlot::tab_model(m6.glmer)
+```
+
+Visualize results
+
+```{r reg03, message=FALSE, warning=FALSE}
+sjPlot::plot_model(m6.glmer, type = "pred", terms = c("Sentence_type", "Group"))
+```
+
+```{r reg04, message=FALSE, warning=FALSE}
+sjPlot::plot_model(m6.glmer, type = "pred", terms = c("Sentence_type", "Word_order"))  + 
+  ggplot2::theme_bw() +
+  ggplot2::labs(x = "Sentence Type", y = "Probability\nfor Response = 1")
+```
+
+
+# Wrap-up{-}
+
 
 
 # Citation & Session Info {-}
 
-Schweinberger, Martin. `r format(Sys.time(), '%Y')`. *Introduction to Data Visualization in R*. Brisbane: The University of Queensland. url: https://slcladal.github.io/introviz.html  (Version `r format(Sys.time(), '%Y.%m.%d')`).
+Schweinberger, Martin. `r format(Sys.time(), '%Y')`. *Introduction to Data Visualization with R - AcqVA Aurora workshop*. Tromsø: The Arctic University of Norway, Tromsø. url: https://slcladal.github.io/introviz.html  (Version `r format(Sys.time(), '%Y.%m.%d')`).
 
 ```
 @manual{schweinberger`r format(Sys.time(), '%Y')`acqvavizrws,
