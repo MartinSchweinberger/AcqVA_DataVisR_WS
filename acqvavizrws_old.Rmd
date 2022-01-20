@@ -235,20 +235,7 @@ myxlsx <- readxl::read_xlsx(here::here("data", "data_german.xlsx"), sheet = 1)
 head(myxlsx)
 ```
 
-The data set consists of 8 columns (*ID_rater*, *ID_child*, *age_group*, *accent_response*, *accent_numeric *, *rating_language*, *age_months*, and *family*). Most of the columns are pretty self-explanatory and only  accent_response and family require an explanation: 
-
-* *accent_response* represents the strength of the accent as rated by the raters (and it has three levels: `s` for *strong*, `w` for *weak*, and `no` for *no accent*)  
-
-* *family* represents the family type for the child and it has three levels: *bil-mixed*,   *bil-rus*, and    *mono-de*.
-
-To save a file as xlsx, you would use the code shown below (be aware that you would need to install and load the `xlsx` package for that!)
-
-```{r writexlsx, eval = F, message=F, warning=F}
-install.packages("xlsx")
-library(xlsx)
-xlsx::write.xlsx(myxlsx, here::here("data", "myxlsx.xlsx"))
-```
-
+The data set consists of 7 columns (*Date*, *Genre*, *Text*, *Prepositions*, *Region*, *GenreRedux*, *DateRedux*) representing the relative frequency of prepositions in texts written in England. The columns provide information about the texts with each row representing one of the texts.
 
 ## Load csv-file{-}
 
@@ -257,12 +244,6 @@ xlsx::write.xlsx(myxlsx, here::here("data", "myxlsx.xlsx"))
 mycsv <- read.csv(here::here("data", "data_german.csv"))
 # inspect data
 head(mycsv)
-```
-
-To save a file as csv, you would use the  code below.
-
-```{r writecsv, eval = F, message=F, warning=F}
-write.csv(mycsv, here::here("data", "mycsv.xlsx"))
 ```
 
 ## Load txt-file{-}
@@ -274,11 +255,6 @@ mytxt <- read.delim(here::here("data", "data_german.txt"), sep = "\t")
 head(mytxt)
 ```
 
-To save a file as txt, you would use the code below.
-
-```{r writetxt, eval = F, message=F, warning=F}
-write.table(mytxt, here::here("data", "mytxt.txt"), sep = "\t")
-```
 
 ## Load rda-file{-}
 
@@ -287,12 +263,6 @@ write.table(mytxt, here::here("data", "mytxt.txt"), sep = "\t")
 myrda <- readRDS(here::here("data", "data_german.rda"))
 # inspect data
 head(myrda)
-```
-
-To save a file as rda, you would use the code below.
-
-```{r writerda, eval = F, message=F, warning=F}
-base::saveRDS(myrda, file = here::here("data", "myrda.rda"))
 ```
 
 # Basics of data preparation{-}
@@ -319,31 +289,42 @@ These functions are important because you wil frequently have to change the data
 
 **Example**
 
-```{r dpro1, message=F, warning=F}
-myxlsx %>% # take the myxlsx data and then
-  # create a new column called Age that contains the age of children in years 
-  mutate(Age = age_months/12) %>% # and then
-  # only keep rows with children older than  values higher than 1
-  filter(Age > 8) %>% # and then
-  # only retain the columns Age, accent_response, and family
-  select(Age, accent_response, family) -> newdata # store the results in an object called newdata
+```{r dpro1, eval = F, message=F, warning=F}
+mytxt %>% # take the myxlsx data and then
+  # create a new column called Preps that contains the frequencies of Preposition divided by 100 
+  mutate(Preps = Prepositions/100) %>% # and then
+  # only keep rows with Preps values higher than 1
+  filter(Preps > 1) %>% # and then
+  # only retain the columns Preps, DateRedux, and GenreRedux
+  select(Preps, DateRedux, GenreRedux) -> newdata # store the results in an object called newdata
 # inspect newdata
 head(newdata)
 ```
 
 We can also group and summarize the data now.
 
-```{r dpro2, message=F, warning=F}
+```{r dpro2, eval = F, message=F, warning=F}
 newdata %>%
-  group_by(family, accent_response) %>%
-  summarise(N = n()) -> newdata2
+  group_by(GenreRedux, DateRedux) %>%
+  summarise(N = n(),
+            Preps = mean(Preps)) -> newdata2
 # inspect
 newdata2
 ```
 
 
 
-Now, we have the number of observations  for each combination or *family* and *accent_response*.
+Now, we have the number of observations and the mean frequency of Prepositions for each combination or *DateRedux* and *GenreRedux*.
+
+```{r, eval = F, message=FALSE, warning=FALSE}
+newdata2 %>%
+  dplyr::mutate(DateRedux = as.factor(DateRedux)) %>%
+  dplyr::group_by(DateRedux) %>%
+  dplyr::summarise(Means = mean(Preps)) -> newdata3
+# inspect
+newdata3
+```
+
 
 
 # Getting started with ggplot2{-}
@@ -585,19 +566,6 @@ ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
 ggsave(here::here("images", "myniceggplot.png"))
 ```
 
-### Exercise: creating your own box plot{-}
-
-The code below loads another data set called `exdata`. Use the data to create another boxplot (also, add colors and try to make it nice and publishable).
-
-```{r ex1, message=FALSE, warning=FALSE}
-exdata <- read_excel(here::here("data", "L2EnglishIntervention.xlsx"))
-# inspect
-head(exdata)
-```
-
-
-
-
 
 ## Line Plots{-}
 
@@ -606,19 +574,9 @@ When you want to create different types of plots (scatter plot, line plot, box p
 
 Prepare data
 
-* remove NAs
-
-```{r line01a, message=FALSE, warning=FALSE}
+```{r line01, message=FALSE, warning=FALSE}
 linedat <- myxlsx %>%
-  drop_na()
-# inspect data
-head(linedat)
-```
-
-* create column with age groups
-
-```{r line01b, message=FALSE, warning=FALSE}
-linedat <- linedat %>%
+  drop_na() %>%
   mutate(age_cat = case_when(age_months < 60 ~ "41-60",
                              age_months < 70 ~ "61-70",
                              age_months < 80 ~ "71-80",
@@ -626,20 +584,9 @@ linedat <- linedat %>%
                              age_months < 100 ~ "91-100",
                              age_months < 110 ~ "101-110",
                              age_months < 120 ~ "111-120"),
-         # convert into factor with set order of levels
          age_cat = factor(age_cat, levels = c("41-60", "61-70", "71-80", "81-90", 
-                                              "91-100", "101-110", "111-120"))) 
-# inspect
-head(linedat)
-```
-
-* create column with mean accent rating per family type and age group
-
-```{r line01c, message=FALSE, warning=FALSE}
-linedat <- linedat %>%
-  # grouping by age group and family type
+                                              "91-100", "101-110", "111-120"))) %>%
   group_by(family, age_cat) %>%
-  # calculate mean of accent rating
   summarise(accent_numeric = mean(accent_numeric))
 ```
 
@@ -647,30 +594,24 @@ Generate plot
 
 ```{r line02, message=FALSE, warning=FALSE}
 linedat  %>%
-  ggplot(aes(x = age_cat, y = accent_numeric,
-             # generate different lines for each family type
-             group = family, 
-             # give different colors to each line
-             color = family)) +
+  ggplot(aes(x = age_cat, y = accent_numeric, 
+                   group = family, color = family)) +
   geom_line()
 ```
 
 Prettify plot
 
 * add different line types
-
 * increase thickness of lines
 
 ```{r line03, message=FALSE, warning=FALSE}
 linedat %>%
   ggplot(aes(x = age_cat, y = accent_numeric, 
                    group = family, color = family, linetype = family)) +
-  # change line thickness
   geom_line(size = 1.5)
 ```
 
 * white background
-
 * change axes labels
 
 ```{r line04, message=FALSE, warning=FALSE}
@@ -797,36 +738,19 @@ Alternative: show pre-calculated frequencies
 
 Prepare data
 
-```{r bar02a, message=FALSE, warning=FALSE}
+```{r bar02, message=FALSE, warning=FALSE}
 bardata <- myxlsx %>%
-  # change the levels of family to be more meaningful
   mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
                             family == "bil-rus" ~ "Bilingual Russian",
                             family == "mono-de" ~ "Monolingual German",
                             TRUE ~ family)) %>%
-  # group by family
   group_by(family) %>%
-  # get frequency of familytypes
-  summarise(Frequency = n())
-# inspect
-head(bardata)
-```
-
-* add percentage
-
-```{r bar02b, message=FALSE, warning=FALSE}
-bardata <- bardata %>%
-  # ungroup
+  summarise(Frequency = n()) %>%
   ungroup() %>%
-  # calculate total and stre value in extra column called Total
   mutate(Total = sum(Frequency)) %>%
-  # perform calculations row-wise
   rowwise() %>%
-  # calculate percent
   mutate(Percent = round(Frequency/Total *100, 1),
-         # add a Label column with the Frequency and the Percentage value
          Label = paste0(Frequency, " (", Percent, "%)")) %>%
-  # remove Total column (we don't need it any lonnger)
   select(-Total)
 # check data
 bardata
@@ -889,43 +813,22 @@ To make the best use of a mosaic plot, we need to create a matrix.
 
 * prepare data: tidy format
 
-```{r mosaic01a, message=F, warning=F}
+```{r mosaic01, message=F, warning=F}
 mosaicdat <- myxlsx %>%
-  # group by family, age_group, and accent_response
   dplyr::group_by(family, age_group, accent_response) %>%
-  # get frequencies of the configurations
-  dplyr::summarise(Frequency = n())
-# inspect
-mosaicdat
-```
-
-* ungroup and convert character variables into factors
-
-```{r mosaic01b, message=F, warning=F}
-mosaicdat <- mosaicdat %>%
-  # ungroup
+  dplyr::summarise(Frequency = n()) %>%
   dplyr::ungroup() %>%
-  # convert character variables to factors
   dplyr::mutate_if(is.character, factor)
 # inspect
 mosaicdat
 ```
 
-* split data (the `pull` function *pulls out* the values for a variable)
+* split data
 
-```{r mosaic02a, message=F, warning=F}
+```{r mosaic02, message=F, warning=F}
 mos1 <- mosaicdat %>%
-  # filter out all rows where family is bil-mixed
   dplyr::filter(family == "bil-mixed") %>%
-  # pull out the numeric values
   dplyr::pull()
-# inspect
-mos1
-```
-
-* we also do this for the other family types
-
-```{r mosaic02b, message=F, warning=F}
 mos2 <- mosaicdat %>%
   dplyr::filter(family == "bil-rus") %>%
   dplyr::pull()
@@ -933,7 +836,7 @@ mos3 <- mosaicdat %>%
   dplyr::filter(family == "mono-de") %>%
   dplyr::pull()
 # inspect
-mos2; mos3
+mos1
 ```
 
 * Generate matrix
@@ -1064,21 +967,20 @@ Perform regression analysis
 library(lme4)
 library(sjPlot)
 # run model
-m1 = glmer(Response_num ~ (1|ID) + Word_order + Sentence_type + Sentence_type * Group+Sentence_type * Word_order, 
-                 data = regdat, 
-                 family = binomial)
+m0.glmer = glmer(Response_num ~ (1|ID), data = regdat, family = binomial)
+m6.glmer <- update(m0.glmer, .~.+Word_order+Sentence_type+Sentence_type*Group+Sentence_type*Word_order)
 # inspect results
-sjPlot::tab_model(m1)
+sjPlot::tab_model(m6.glmer)
 ```
 
 Visualize results
 
 ```{r reg03, message=FALSE, warning=FALSE}
-sjPlot::plot_model(m1, type = "pred", terms = c("Sentence_type", "Group"))
+sjPlot::plot_model(m6.glmer, type = "pred", terms = c("Sentence_type", "Group"))
 ```
 
 ```{r reg04, message=FALSE, warning=FALSE}
-sjPlot::plot_model(m1, type = "pred", terms = c("Sentence_type", "Word_order"))  + 
+sjPlot::plot_model(m6.glmer, type = "pred", terms = c("Sentence_type", "Word_order"))  + 
   ggplot2::theme_bw() +
   ggplot2::labs(x = "Sentence Type", y = "Probability\nfor Response = 1")
 ```
