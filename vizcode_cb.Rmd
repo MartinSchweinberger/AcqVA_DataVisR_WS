@@ -26,13 +26,12 @@ install.packages(c("tidyverse", "here", "vcd", "likert", "lme4",
 
 For everything to work, please do the following:
 
-Please copy this Jupyter notebook so that you are able to edit it.
+1. Please copy this Jupyter notebook so that you are able to edit it. For this, simply go to: File > Save a copy in Drive.
 
-Simply go to: File > Save a copy in Drive.
-
-Install the packages you need for this workshop (this will take a couple of minutes).
+2. Install the packages you need for this workshop (this will take a couple of minutes).
 
 Once you have done that, you are good to go.
+
 
 
 ## Primer
@@ -100,22 +99,23 @@ Then on the upload symbol.
 ![Colab Upload Symbol](https://slcladal.github.io/images/ColabUpload.png)
 
 
-Next, upload the files you want to analyze and then the respective files names in the `file` argument of the `scan` function. When you then execute the code (like to code chunk below, you will upload your own data.
+Next, upload the files you want to analyze and then the respective files names in the `file` argument of the `read_xlsx` function. When you then execute the code (like to code chunk below, you will upload your own data.
 
 
 ```{r loadown, echo = T, eval = F, message=FALSE, warning=FALSE}
-myxlsx <- readxl::read_xlsx("data_german.xlsx", sheet = 1)
-mycsv <- read.csv("data_german.csv")
+myxlsx <- read_xlsx("data_german.xlsx", sheet = 1)
+exdata <- read_xlsx("L2EnglishIntervention.xlsx", sheet = 1)
+regdata <- read_xlsx("AJT_V2.xlsx", sheet = 1)
 # inspect
-head(myxlsx); head(mycsv)
+head(myxlsx); head(mycsv); head(regdata)
 ```
 
 To apply the code and functions below to your own data, you will need to modify the code chunks and replace the data we use here with your own data object. 
 
 
-
-
 ## Load xlsx-file when working in RStudio on  your own computer
+
+**WARNING!** The code below for loading and saving data only works if you are **not working** in the Jupyter notebook but in RStudio on your own computer! I included it because you will be working in RStudio on your own computer most of the time - so you need to know what the code looks like.
 
 ```{r loadxlsx, message=F, warning=F}
 # load xlsx data
@@ -246,6 +246,9 @@ ggplot(myxlsx, aes(x = accent_response, y = age_months)) +
 ### Saving plots
 
 We can use the `ggsave` function to save plots to your computer.
+
+**WARNING!** The code below for loading and saving data only works if you are **not working** in the Jupyter notebook but in RStudio on your own computer!
+
 
 ```{r saveplot, message=FALSE, warning=FALSE}
 ggsave(here::here("images", "myfirstggplot.png"))
@@ -457,7 +460,7 @@ ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
 * Save plot
 
 ```{r boxsave, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "myniceggplot.png"))
+ggsave("myniceggplot.png")
 ```
 
 ### Exercise: creating your own box plot
@@ -477,7 +480,7 @@ You will most probably encounter some difficulties - don't worry and don't lose 
 
 If you want to have an aim, try and re-create the following boxplot:
 
-![Target: exercise boxplot](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/tree/main/images/exboxplot.png)
+![Target: exercise boxplot](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/blob/main/images/exboxplot.png)
 
 
 You can write code in the code box below.
@@ -637,7 +640,7 @@ linedat %>%
 Save plot
 
 ```{r aveline, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "niceline.png"))
+ggsave("niceline.png")
 ```
 
 
@@ -787,7 +790,7 @@ ggplot(bardata, aes(x = family, y = Frequency, fill = family, label = Label)) +
 Save plot
 
 ```{r savebar, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "nicebar.png"))
+ggsave("nicebar.png")
 ```
 
 ## Mosaic plots with vcd
@@ -872,7 +875,7 @@ mosaic(mos_mx,
 
 ```{r mosaic05, message=F, warning=F}
 # open connection
-png(here::here("images", "mosaic.png"), width = 750, height = 300)
+png("mosaic.png", width = 750, height = 300)
 # generate plot
 mosaic(mos_mx,
        axis.cex = 15,
@@ -931,7 +934,7 @@ plot(likert(survey[,3:12]), ordered = F, wrap= 30)
 ```{r likert05, message=FALSE, warning=FALSE}
 survey_p1 <- plot(likert(survey[,3:12]), ordered = F, wrap= 60)
 # save plot
-cowplot::save_plot(here("images", "stu_p1.png"), # where to save the plot
+cowplot::save_plot("stu_p1.png", # where to save the plot
                    survey_p1,        # object to plot
                    base_asp = 1.5,  # ratio of space fro questions vs space for plot
                    base_height = 8) # size! higher for smaller font size
@@ -943,7 +946,7 @@ cowplot::save_plot(here("images", "stu_p1.png"), # where to save the plot
 # create plot
 survey_p2 <- plot(likert(survey[,3:8], grouping = survey[,1]))
 # save plot
-cowplot::save_plot(here("images", "stu_p2.png"), # where to save the plot
+cowplot::save_plot("stu_p2.png", # where to save the plot
                    survey_p2,        # object to plot
                    base_asp = 1.5,  # ratio of space fro questions vs space for plot
                    base_height = 8) # size! higher for smaller font size
@@ -958,7 +961,7 @@ survey_p2
 * load data
 
 ```{r reg01, message=FALSE, warning=FALSE}
-regdat <- read.delim(here::here("data", "AJT_V2.csv"), sep = ";")
+regdat <- read.delim("AJT_V2.csv", sep = ";")
 # inspect data
 str(regdat)
 ```
@@ -991,4 +994,7 @@ sjPlot::plot_model(m1, type = "pred", terms = c("Sentence_type", "Word_order")) 
 ```
 
 
+# Resources and Wrap-Up
+
+That's all folks!
 

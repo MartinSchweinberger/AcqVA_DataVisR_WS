@@ -203,7 +203,7 @@ In addition, we will use a data set that is part of the `likert` package and a d
 
 Here are summaries of the data sets:
 
-1. **`data_german`** (we will call this data ``myxlsx`): contains 777 observations of the following 8 variables:
+1. **`data_german`** (we will call this data `myxlsx`): contains 777 observations of the following 8 variables:
   + ID_rater: 21 levels
   + ID_child: 37 levels
   + age_group: 2 levels, namely *preschool*, *school* and missing (NA, n = 21, 2.70%)
@@ -659,16 +659,28 @@ You will most probably encounter some difficulties - don't worry and don't lose 
 
 If you want to have an aim, try and re-create the following boxplot:
 
-```{r ex2, echo = F, message=FALSE, warning=FALSE}
+```{r exbox_target, echo=F, fig.cap="", message=FALSE, warning=FALSE, out.width='100%'}
+knitr::include_graphics("https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/blob/main/images/exboxplot.png")
+```
+
+
+```{r expract, message=F, warning=F}
+
+```
+
+
+
+Below is the skeleton script for the plot (in case you need help ;)
+
+```{r ex2, eval = F, message=FALSE, warning=FALSE}
 exdata %>%
-  dplyr::filter(Condition != "FILLER") %>%
-  ggplot(aes(x = Test, y = Response_mean, fill = Group)) +
+  dplyr::filter( != "") %>%
+  ggplot(aes(x = , y = , fill = )) +
   geom_boxplot() +
-  facet_grid(Grammaticality ~ Condition) +
+  facet_grid( ~ ) +
   theme_bw() +
-  labs(y = "Probability") +
-  theme(legend.position = "top")
-ggsave(here::here("images", "exboxplot.png"))
+  labs(y = "") +
+  theme(legend.position = "")
 ```
 
 ## Excursion: in-built statistics{-}
