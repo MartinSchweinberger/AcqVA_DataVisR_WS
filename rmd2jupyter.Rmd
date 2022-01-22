@@ -39,17 +39,17 @@ library(rmd2jupyter)
 
 Generate list of Rmd files
 
-```{r}
+```{r list, eval = F, echo = F}
 ladalrmds <- list.files(here::here("."), pattern = ".Rmd")
 ladalrmds
 ```
 
 
-
+Convert notebooks
 
 ```{r}
 # convert 1 notebook
-rmd2jupyter::rmd2jupyter("cbs/basicstatz_cb.Rmd")
+rmd2jupyter::rmd2jupyter("vizcode_cb.Rmd")
 ```
 
 This worked and a ipynb-file is now in our directory.
