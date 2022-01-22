@@ -668,6 +668,7 @@ exdata %>%
   theme_bw() +
   labs(y = "Probability") +
   theme(legend.position = "top")
+ggsave(here::here("images", "exboxplot.png"))
 ```
 
 ## Excursion: in-built statistics{-}
