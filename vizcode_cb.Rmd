@@ -10,15 +10,24 @@ This document only contains the code we will use in this workshop and very minim
 ## What to do before the workshop
 
 
-```{r install, eval = F, message=F, warning=F}
+```{r install1, eval = F, message=F, warning=F}
 # update R
 #install.packages("installr")
 #library(installr)
 #updateR()
 # install required packages
-install.packages(c("tidyverse", "here", "vcd", "likert", "lme4", 
-                   "sjPlot", "lme4"), 
-                 dependencies = T)
+install.packages("lme4", dependencies = T)
+```
+
+Other packages
+
+```{r install2, eval = F, message=F, warning=F}
+
+install.packages("vcd", dependencies = T)
+install.packages("xlsx", dependencies = T)
+install.packages("likert", dependencies = T)
+
+install.packages(c("dplyr", "ggplot2", "here", "tidyr", "sjPlot", "readxl"), dependencies = F)
 ```
 
 
@@ -31,8 +40,6 @@ For everything to work, please do the following:
 2. Install the packages you need for this workshop (this will take a couple of minutes).
 
 Once you have done that, you are good to go.
-
-
 
 ## Primer
 
@@ -76,13 +83,14 @@ Now, we start by preparing the session.
 
 ```{r prep, message=F, warning=F}
 # load packages
-library(tidyverse)
+library(dplyr)
 library(here)
 library(readxl)
 library(vcd)
 library(likert)
 library(lme4)
 library(sjPlot)
+library(xlsx)
 ```
 
 
@@ -101,25 +109,17 @@ Then on the upload symbol.
 
 Next, upload the files you want to analyze and then the respective files names in the `file` argument of the `read_xlsx` function. When you then execute the code (like to code chunk below, you will upload your own data.
 
-
-```{r loadown, echo = T, eval = F, message=FALSE, warning=FALSE}
-myxlsx <- read_xlsx("data_german.xlsx", sheet = 1)
-exdata <- read_xlsx("L2EnglishIntervention.xlsx", sheet = 1)
-regdata <- read_xlsx("AJT_V2.xlsx", sheet = 1)
-# inspect
-head(myxlsx); head(mycsv); head(regdata)
-```
-
 To apply the code and functions below to your own data, you will need to modify the code chunks and replace the data we use here with your own data object. 
 
 
 ## Load xlsx-file when working in RStudio on  your own computer
 
-**WARNING!** The code below for loading and saving data only works if you are **not working** in the Jupyter notebook but in RStudio on your own computer! I included it because you will be working in RStudio on your own computer most of the time - so you need to know what the code looks like.
 
 ```{r loadxlsx, message=F, warning=F}
-# load xlsx data
-myxlsx <- readxl::read_xlsx(here::here("data", "data_german.xlsx"), sheet = 1)
+# load xlsx data from Google Drive 
+myxlsx <- readxl::read_xlsx("data_german.xlsx", sheet = 1)
+# load xlsx from the data folder in your project folder
+#myxlsx <- readxl::read_xlsx(here::here("data", "data_german.xlsx"), sheet = 1)
 # inspect data (the head function shows the first 6 rows of a table or data frame)
 head(myxlsx)
 ```
@@ -127,17 +127,22 @@ head(myxlsx)
 * save data
 
 ```{r writexlsx, eval = F, message=F, warning=F}
-install.packages("xlsx")
-library(xlsx)
-xlsx::write.xlsx(myxlsx, here::here("data", "myxlsx.xlsx"))
+# into the the data folder in your project folder
+#xlsx::write.xlsx(myxlsx, here::here("data", "myxlsx.xlsx"))
+# into Google Colab
+xlsx::write.xlsx(myxlsx, "myxlsx.xlsx")
 ```
 
 
 ## Load csv-file when working in RStudio on  your own computer
 
+**Make sure you have uploaded the file `data_german.csv` into Google Colab for this to work!**
+
 ```{r loadcsv, message=F, warning=F}
-# load csv file
-mycsv <- read.csv(here::here("data", "data_german.csv"))
+# load csv file from Google Drive 
+mycsv <- read.csv("data_german.csv")
+# load csv from the data folder in your project folder
+#mycsv <- read.csv(here::here("data", "data_german.csv"))
 # inspect data
 head(mycsv)
 ```
@@ -145,14 +150,21 @@ head(mycsv)
 * save data
 
 ```{r writecsv, eval = F, message=F, warning=F}
-write.csv(mycsv, here::here("data", "mycsv.xlsx"))
+# into the the data folder in your project folder
+#write.csv(mycsv, here::here("data", "mycsv.csv"))
+# into Google Colab
+write.csv(mycsv, "mycsv.csv")
 ```
 
 ## Load txt-file when working in RStudio on  your own computer
 
+Again: make sure you have uploaded the file `data_german.txt` into Google Colab for this to work!
+
 ```{r loadtxt, message=F, warning=F}
-# load txt file
-mytxt <- read.delim(here::here("data", "data_german.txt"), sep = "\t")
+# load txt file from Google Drive 
+mytxt <- read.delim("data_german.txt", sep = "\t")
+# load txt from the data folder in your project folder
+#mytxt <- read.delim(here::here("data", "data_german.txt"), sep = "\t")
 # inspect data
 head(mytxt)
 ```
@@ -160,14 +172,21 @@ head(mytxt)
 * save data
 
 ```{r writetxt, eval = F, message=F, warning=F}
-write.table(mytxt, here::here("data", "mytxt.txt"), sep = "\t")
+# into the the data folder in your project folder
+#write.table(mytxt, here::here("data", "mytxt.txt"), sep = "\t")
+# into Google Colab
+write.table(mytxt, "mytxt.txt", sep = "\t")
 ```
 
 ## Load rda-file when working in RStudio on  your own computer
 
+Again: make sure you have uploaded the file `data_german.rda` into Google Colab for this to work!
+
 ```{r loadrda, message=F, warning=F}
-# load xlsx data
-myrda <- readRDS(here::here("data", "data_german.rda"))
+# load xlsx data from Google Drive 
+myrda <- readRDS("data_german.rda")
+# load txt from the data folder in your project folder
+#myrda <- readRDS(here::here("data", "data_german.rda"))
 # inspect data
 head(myrda)
 ```
@@ -175,7 +194,10 @@ head(myrda)
 * save data
 
 ```{r writerda, eval = F, message=F, warning=F}
-base::saveRDS(myrda, file = here::here("data", "myrda.rda"))
+# into the the data folder in your project folder
+#base::saveRDS(myrda, file = here::here("data", "myrda.rda"))
+# into Google Colab
+base::saveRDS(myrda, file = "myrda.rda")
 ```
 
 # Basics of data preparation
@@ -251,7 +273,7 @@ We can use the `ggsave` function to save plots to your computer.
 
 
 ```{r saveplot, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "myfirstggplot.png"))
+ggsave("myfirstggplot.png")
 ```
 
 
@@ -468,7 +490,7 @@ ggsave("myniceggplot.png")
 The code below loads another data set called `exdata`. Use the data to create another boxplot (also, add colors and try to make it nice and publishable). I have made it a bit easier for you by calculating the mean of *Response-code*).
 
 ```{r ex1, message=FALSE, warning=FALSE}
-exdata <- read_excel(here::here("data", "L2EnglishIntervention.xlsx")) %>%
+exdata <- read_excel("L2EnglishIntervention.xlsx") %>%
   dplyr::mutate_if(is.character, factor) %>%
   dplyr::group_by(Group, Test, `Test-item`, Condition, Grammaticality) %>%
   dplyr::summarise(Response_mean = mean(`Respose-code`))
@@ -510,7 +532,7 @@ exdata %>%
 One nice thing about `ggplot` is that it allows to visualize statistical properties such as mean, standard errors or standard deviations very easily using the `stat_summary` geom (see below).
 
 ```{r excuesion, message=FALSE, warning=FALSE}
-read_excel(here::here("data", "L2EnglishIntervention.xlsx")) %>%
+read_excel("L2EnglishIntervention.xlsx") %>%
   ggplot(aes(x = Test, y = `Respose-code`, group = Group, color = Group)) +
   stat_summary(fun = mean, geom = "point", aes(group= Group)) +          
   stat_summary(fun.data = mean_cl_boot,       

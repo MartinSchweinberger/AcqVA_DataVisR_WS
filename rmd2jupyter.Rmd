@@ -60,4 +60,3 @@ for (f in ladalrmds) rmd2jupyter::rmd2jupyter(f)
 ```
 
 
-
