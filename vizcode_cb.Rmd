@@ -15,17 +15,13 @@ This document only contains the code we will use in this workshop and very minim
 #install.packages("installr")
 #library(installr)
 #updateR()
+# take time
+t0 <- Sys.time()
 # install required packages
-install.packages("lme4", dependencies = T)
-install.packages(c("dplyr", "ggplot2", "here", "tidyr", "sjPlot", "readxl"), dependencies = F)
-```
-
-Other packages
-
-```{r install2, eval = F, message=F, warning=F}
-install.packages("vcd", dependencies = T)
-install.packages("xlsx", dependencies = T)
-install.packages("likert", dependencies = T)
+install.packages(c("dplyr", "ggplot2", "here", "tidyr",  "readxl", "stringr", "cowplot"), dependencies = F)
+install.packages("xlsx")
+t1 <- Sys.time()
+t1-t0
 ```
 
 
@@ -84,11 +80,11 @@ Now, we start by preparing the session.
 library(dplyr)
 library(here)
 library(readxl)
-library(vcd)
-library(likert)
-library(lme4)
-library(sjPlot)
 library(xlsx)
+library(ggplot2)
+library(tidyr)
+library(stringr)
+library(cowplot)
 ```
 
 
@@ -488,7 +484,7 @@ ggsave("myniceggplot.png")
 The code below loads another data set called `exdata`. Use the data to create another boxplot (also, add colors and try to make it nice and publishable). I have made it a bit easier for you by calculating the mean of *Response-code*).
 
 ```{r ex1, message=FALSE, warning=FALSE}
-exdata <- read_excel(here::here("data", "L2EnglishIntervention.xlsx")) %>%
+exdata <- read_excel("L2EnglishIntervention.xlsx") %>%
   dplyr::mutate_if(is.character, factor) %>%
   dplyr::group_by(Group, Test, `Test-item`, Condition, Grammaticality) %>%
   dplyr::summarise(Response_mean = mean(`Respose-code`))
@@ -528,6 +524,11 @@ exdata %>%
 One nice thing about `ggplot` is that it allows to visualize statistical properties such as mean, standard errors or standard deviations very easily using the `stat_summary` geom (see below).
 
 ```{r excuesion, message=FALSE, warning=FALSE}
+# install required packages
+install.packages("Hmisc")
+# load package
+library(Hmisc)
+# load data and plot
 read_excel("L2EnglishIntervention.xlsx") %>%
   ggplot(aes(x = Test, y = `Respose-code`, group = Group, color = Group)) +
   stat_summary(fun = mean, geom = "point", aes(group= Group)) +          
@@ -793,12 +794,12 @@ ggsave("nicebar.png")
 ```
 
 
-### Exercise{-}
+### Exercise
 
 Use the `regdata` data set (shown below) to create a bargraph that shows the responses by sentence type, word order, and group. Adapt color, axes title, axes tick labels, and try adding text. You can see an example of what the plot looks like below.
 
 ```{r bardatex, warning=F, message=F}
-regdat <- read.delim(here::here("data", "AJT_V2.csv"), sep = ";") %>%
+regdat <- read.delim("AJT_V2.csv", sep = ";") %>%
   # factorize character variables
   dplyr::mutate_if(is.character, factor)
 # inspect data
@@ -821,6 +822,11 @@ You can write the code in the code box below.
 * prepare data: tidy format
 
 ```{r mosaic01a, message=F, warning=F}
+# install required packages
+install.packages("vcd")
+# load packages
+library(vcd)
+# process data
 mosaicdat <- myxlsx %>%
   # group by family, age_group, and accent_response
   dplyr::group_by(family, age_group, accent_response) %>%
@@ -919,6 +925,10 @@ Load data
 sdat  <- base::readRDS(url("https://slcladal.github.io/data/sdd.rda", "rb"))
 # inspect 
 head(sdat)
+# install required packages
+install.packages("likert")
+# load pacjages
+library(likert)
 ```
 
 * clean column names
@@ -987,13 +997,17 @@ survey_p2
 regdat <- read.delim("AJT_V2.csv", sep = ";")
 # inspect data
 str(regdat)
+# install required packages
+install.packages("lme4")
+install.packages("sjPlot")
+# load packages
+library(lme4)
+library(sjPlot)
 ```
 
 * perform regression analysis
 
 ```{r reg02, message=FALSE, warning=FALSE}
-library(lme4)
-library(sjPlot)
 # run model
 m1 = glmer(Response_num ~ (1|ID) + Word_order + Sentence_type + Sentence_type * Group+Sentence_type * Word_order, 
                  data = regdat, 
