@@ -15,7 +15,7 @@ knitr::include_graphics("https://slcladal.github.io/images/acqvalab.png")
 
 This document only contains the code we will use in this workshop and very minimal descriptions.
 
-[Here](https://colab.research.google.com/drive/1Ty2jK_JZo9hANAWXg-d_PRV8dKVx4P51?usp=sharing)** is a **link to an interactive version of this tutorial on Google Colab**
+[Here](https://colab.research.google.com/drive/16VNNnRXAC6CFU9oBwLlQsoG_Xpub-CRl?usp=sharing)** is a **link to an interactive version of this tutorial on Google Colab**
 
 ## What to do before the workshop{-}
 
@@ -27,8 +27,7 @@ This document only contains the code we will use in this workshop and very minim
 #updateR()
 # install required packages
 install.packages(c("tidyverse", "here", "vcd", "likert", "lme4", 
-                   "sjPlot", "lme4"), 
-                 dependencies = T)
+                   "sjPlot", "lme4"), dependencies = T)
 ```
 
 
@@ -465,15 +464,17 @@ If you want to have an aim, try and re-create the following boxplot:
 knitr::include_graphics("https://slcladal.github.io/images/exboxplot.png")
 ```
 
+Here is a script skeleton if you need some help ;)
+
 ```{r ex2, echo = F, message=FALSE, warning=FALSE}
-exdata %>%
-  dplyr::filter(Condition != "FILLER") %>%
-  ggplot(aes(x = Test, y = Response_mean, fill = Group)) +
-  geom_boxplot() +
-  facet_grid(Grammaticality ~ Condition) +
-  theme_bw() +
-  labs(y = "Probability") +
-  theme(legend.position = "top")
+#exdata %>%
+#  dplyr::filter( != "") %>%
+#  ggplot(aes(x = , y = , fill = )) +
+#  geom_boxplot() +
+#  facet_grid( ~ ) +
+#  theme_bw() +
+#  labs(y = "") +
+#  theme(legend.position = "")
 ```
 
 ## Excursion: in-built statistics{-}
