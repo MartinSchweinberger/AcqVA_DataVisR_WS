@@ -17,17 +17,15 @@ This document only contains the code we will use in this workshop and very minim
 #updateR()
 # install required packages
 install.packages("lme4", dependencies = T)
+install.packages(c("dplyr", "ggplot2", "here", "tidyr", "sjPlot", "readxl"), dependencies = F)
 ```
 
 Other packages
 
 ```{r install2, eval = F, message=F, warning=F}
-
 install.packages("vcd", dependencies = T)
 install.packages("xlsx", dependencies = T)
 install.packages("likert", dependencies = T)
-
-install.packages(c("dplyr", "ggplot2", "here", "tidyr", "sjPlot", "readxl"), dependencies = F)
 ```
 
 
@@ -485,12 +483,12 @@ ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
 ggsave("myniceggplot.png")
 ```
 
-### Exercise: creating your own box plot
+### Exercise
 
 The code below loads another data set called `exdata`. Use the data to create another boxplot (also, add colors and try to make it nice and publishable). I have made it a bit easier for you by calculating the mean of *Response-code*).
 
 ```{r ex1, message=FALSE, warning=FALSE}
-exdata <- read_excel("L2EnglishIntervention.xlsx") %>%
+exdata <- read_excel(here::here("data", "L2EnglishIntervention.xlsx")) %>%
   dplyr::mutate_if(is.character, factor) %>%
   dplyr::group_by(Group, Test, `Test-item`, Condition, Grammaticality) %>%
   dplyr::summarise(Response_mean = mean(`Respose-code`))
@@ -502,8 +500,7 @@ You will most probably encounter some difficulties - don't worry and don't lose 
 
 If you want to have an aim, try and re-create the following boxplot:
 
-![Target: exercise boxplot](https://github.com/MartinSchweinberger/AcqVA_DataVisR_WS/blob/main/images/exboxplot.png)
-
+![Example boxplot](https://slcladal.github.io/images/exboxplot.png)
 
 You can write code in the code box below.
 
@@ -511,7 +508,6 @@ You can write code in the code box below.
 ```{r ex2a, message=FALSE, warning=FALSE}
 
 ```
-
 
 
 Below is the skeleton script for the plot (in case you need help ;)
@@ -678,8 +674,7 @@ ggplot(myxlsx, aes(x = age_months, y = accent_numeric,
   geom_smooth()
 ```
 
-### Exercise; Prettifying the plot
-
+### Exercise
 
 Based on what you learned before, can you make the plot "nicer"?
 Please change the following:
@@ -693,32 +688,14 @@ Please change the following:
 
 The final plot should look sth like this:
 
-```{r smooth02, eval = T, echo = F, message=FALSE, warning=FALSE}
-myxlsx %>%
-  drop_na() %>%
-  mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
-                            family == "bil-rus" ~ "Bilingual Russian",
-                            family == "mono-de" ~ "Monolingual German",
-                            TRUE ~ family),
-         accent_response = factor(accent_response, 
-                                  levels = c("no", "w", "s"), 
-                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
-  ggplot(aes(x = age_months, y = accent_numeric, 
-                   group = family, color = family, fill = family)) +
-  geom_smooth() +
-  labs(x = "Age of child\n(in months)") +
-  theme_bw() +
-  scale_color_manual(values = c("orange", "gray", "lightblue")) +
-  scale_fill_manual(values = c("orange", "gray", "lightblue")) +
-  theme(legend.position = "top") +
-  guides(fill=guide_legend(title="Family type"),
-         color=guide_legend(title="Family type")) +
-  scale_y_discrete(name ="Accent strength rating", 
-                   limits = seq(0, 2, 1), 
-                   labels = c("No accent", "Weak accent", "Strong accent"))
-ggsave(here::here("images", "nicesmooth.png"))
-```
+![Example smoothed line plot](https://slcladal.github.io/images/nicesmooth.png)
 
+
+You can write the code in the following code box.
+
+```{r smooth02, message=FALSE, warning=FALSE}
+
+```
 
 
 ## Bar Chart
@@ -813,6 +790,30 @@ Save plot
 
 ```{r savebar, message=FALSE, warning=FALSE}
 ggsave("nicebar.png")
+```
+
+
+### Exercise{-}
+
+Use the `regdata` data set (shown below) to create a bargraph that shows the responses by sentence type, word order, and group. Adapt color, axes title, axes tick labels, and try adding text. You can see an example of what the plot looks like below.
+
+```{r bardatex, warning=F, message=F}
+regdat <- read.delim(here::here("data", "AJT_V2.csv"), sep = ";") %>%
+  # factorize character variables
+  dplyr::mutate_if(is.character, factor)
+# inspect data
+str(regdat)
+```
+
+You can see an example of what the plot looks like below.
+
+![Example barplot](https://slcladal.github.io/images/barplotex.png)
+
+
+You can write the code in the code box below.
+
+```{r barplotex1, warning=F, message=F}
+
 ```
 
 ## Mosaic plots with vcd

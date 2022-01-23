@@ -856,6 +856,13 @@ The final plot should look sth like this:
 knitr::include_graphics("https://slcladal.github.io/images/nicesmooth.png")
 ```
 
+You can write the code in the following code box.
+
+```{r smooth02, message=FALSE, warning=FALSE}
+
+```
+
+
 
 ## Bar Chart{-}
 
@@ -969,6 +976,8 @@ You can see an example of what the plot looks like below.
 ```{r ubarextarget, echo=F, fig.cap="", message=FALSE, warning=FALSE, out.width='100%'}
 knitr::include_graphics("https://slcladal.github.io/images/barplotex.png")
 ```
+
+You can write the code in the code box below.
 
 ```{r barplotex1, warning=F, message=F}
 
