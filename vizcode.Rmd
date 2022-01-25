@@ -27,9 +27,10 @@ This document only contains the code we will use in this workshop and very minim
 #updateR()
 # install required packages
 install.packages(c("tidyverse", "here", "vcd", "likert", "lme4", 
-                   "sjPlot", "lme4"), dependencies = T)
+                   "sjPlot"), dependencies = T)
 ```
 
+The code has ended.
 
 # Getting started{-}
 
@@ -128,7 +129,7 @@ head(mycsv)
 * save data
 
 ```{r writecsv, eval = F, message=F, warning=F}
-write.csv(mycsv, here::here("data", "mycsv.xlsx"))
+write.csv(mycsv, here::here("data", "mycsv.csv"))
 ```
 
 ## Load txt-file{-}
@@ -355,18 +356,19 @@ myxlsx %>%
 ```{r box09, message=FALSE, warning=FALSE}
 myxlsx %>%
   drop_na() %>%
+   mutate(accent_response = factor(accent_response, 
+                                  levels = c("no", "w", "s"), 
+                                  labels = c("No accent", "Weak accent", "Strong accent"))) %>%
   ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
   geom_boxplot() +
   labs(x = "Accent Rating",
        y = "Age (in months)")  +
-  scale_x_discrete(limits = c("no", "w", "s"), 
-                   labels = c("No accent", "Weak accent", "Strong accent")) +
   theme_bw() +
   theme(legend.position = "top") +
   guides(fill=guide_legend(title="Levels of Accent")) +
   coord_cartesian(x = c(0.5, 3.5),
                   y = c(0, 150)) +
-  scale_fill_manual(values = c("red", "blue", "gray"))
+  scale_fill_manual(values = c( "gray","lightblue", "blue"))
 ```
 
 
@@ -440,7 +442,11 @@ ggplot(aes(x = accent_response, y = age_months, fill = accent_response)) +
 * Save plot
 
 ```{r boxsave, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "myniceggplot.png"))
+ggsave(here::here("images", "myniceggplot_check.png"),   
+       width = 14,
+       height = 8,
+       units = "cm",
+       dpi = 600)
 ```
 
 ### Exercise{-}
@@ -467,14 +473,15 @@ knitr::include_graphics("https://slcladal.github.io/images/exboxplot.png")
 Here is a script skeleton if you need some help ;)
 
 ```{r ex2, echo = F, message=FALSE, warning=FALSE}
-#exdata %>%
-#  dplyr::filter( != "") %>%
-#  ggplot(aes(x = , y = , fill = )) +
-#  geom_boxplot() +
-#  facet_grid( ~ ) +
-#  theme_bw() +
-#  labs(y = "") +
-#  theme(legend.position = "")
+exdata %>%
+  dplyr::filter(Condition != "FILLER") %>%
+  ggplot(aes(x = Test, y = Response_mean, fill = Group)) +
+  geom_boxplot() +
+  facet_grid(Grammaticality ~ Condition) +
+  theme_bw() +
+  labs(y = "Probability") +
+  theme(legend.position = "top") +
+  scale_fill_manual(values = c("red", "blue"))
 ```
 
 ## Excursion: in-built statistics{-}
@@ -489,7 +496,8 @@ read_excel(here::here("data", "L2EnglishIntervention.xlsx")) %>%
                # add error bars
                geom = "errorbar", width = 0.2) +
   facet_grid(Grammaticality~Condition) +
-  theme_bw()
+  theme_bw() +
+  scale_color_manual(values = c("red", "blue"))
 ```
 
 ## Line Plots{-}
@@ -531,6 +539,8 @@ linedat <- linedat %>%
   group_by(family, age_cat) %>%
   # calculate mean of accent rating
   summarise(accent_numeric = mean(accent_numeric))
+# inspect
+head(linedat)
 ```
 
 Generate plot
@@ -573,6 +583,7 @@ linedat %>%
 ```
 
 * legend at top
+
 * change y-axis tick labels
 
 ```{r line05, message=FALSE, warning=FALSE}
@@ -647,7 +658,25 @@ The final plot should look sth like this:
 knitr::include_graphics("https://slcladal.github.io/images/nicesmooth.png")
 ```
 
-```{r smooth02, eval = T, echo = F, message=FALSE, warning=FALSE}
+```{r smooth02, eval = T, message=FALSE, warning=FALSE, echo = F}
+myxlsx %>%
+    mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
+                              family == "bil-rus" ~ "Bilingual Russian",
+                              family == "mono-de" ~ "Monolingual German",
+                              TRUE ~ family)) %>%
+ggplot(aes(x = age_months, y = accent_numeric, 
+                   group = family, color = family, fill = family)) +
+  geom_smooth() +
+  theme_bw() +
+  labs(x = "Age of child\n(in months)", y = "Accent strength rating") +
+  theme(legend.position = "top") +
+  scale_y_discrete(name ="Accent strength rating", 
+                   limits = seq(0, 2, 1), 
+                   labels = c("No accent", "Weak accent", "Strong accent")) +
+    guides(fill=guide_legend(title="Family type"),
+           color=guide_legend(title="Family type")) +
+    scale_fill_manual(values = c("gray", "orange", "lightblue")) +
+    scale_color_manual(values = c("gray", "orange", "lightblue"))
 
 ```
 
@@ -767,7 +796,17 @@ knitr::include_graphics("https://slcladal.github.io/images/barplotex.png")
 ```
 
 ```{r barplotex1, warning=F, message=F}
-
+ggplot(regdat, aes(x = Response, fill = Group)) +
+  geom_bar(stat = "count", position = position_dodge()) +
+  facet_grid(Word_order ~ Sentence_type) +
+  theme_bw() +
+  labs(y = "Frequency (N)") +
+  theme(legend.position = "top") +
+  coord_cartesian(ylim = c(0, 250)) +
+  geom_text(stat='count', 
+            aes(label=..count..), 
+            vjust=-.5, 
+            position = position_dodge(0.95))
 ```
 
 
