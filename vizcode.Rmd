@@ -232,7 +232,11 @@ ggplot(myxlsx, aes(x = accent_response, y = age_months)) +
 We can use the `ggsave` function to save plots to your computer.
 
 ```{r saveplot, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "myfirstggplot.png"))
+ggsave(here::here("images", "myfirstggplot.png"),
+       width = 8,
+       height = 12,
+       unit = "cm",
+       dpi = 300)
 ```
 
 

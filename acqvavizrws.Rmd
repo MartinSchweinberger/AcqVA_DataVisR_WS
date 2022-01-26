@@ -430,7 +430,11 @@ ggplot(myxlsx, aes(x = accent_response, y = age_months)) +
 We can use the `ggsave` function to save plots to your computer.
 
 ```{r saveplot, message=FALSE, warning=FALSE}
-ggsave(here::here("images", "myfirstggplot.png"))
+ggsave(here::here("images", "myfirstggplot.png"),
+       width = 8,
+       height = 12,
+       unit = "cm",
+       dpi = 300)
 ```
 
 
@@ -663,25 +667,23 @@ If you want to have an aim, try and re-create the following boxplot:
 knitr::include_graphics("https://slcladal.github.io/images/exboxplot.png")
 ```
 
+Solution
 
 ```{r expract, message=F, warning=F}
-
+exdata %>%
+  dplyr::filter(Condition != "FILLER") %>%
+  ggplot(aes(x = Test, y = Response_mean, fill = Group)) +
+  geom_boxplot() +
+  facet_grid(Grammaticality ~ Condition) +
+  theme_bw() +
+  labs(y = "Probability") +
+  theme(legend.position = "top") +
+  scale_fill_manual(values = c("red", "blue"))
 ```
 
 
 
-Below is the skeleton script for the plot (in case you need help ;)
 
-```{r ex2, eval = F, message=FALSE, warning=FALSE}
-#exdata %>%
-#  dplyr::filter( != "") %>%
-#  ggplot(aes(x = , y = , fill = )) +
-#  geom_boxplot() +
-#  facet_grid( ~ ) +
-#  theme_bw() +
-#  labs(y = "") +
-#  theme(legend.position = "")
-```
 
 ## Excursion: in-built statistics{-}
 
@@ -856,10 +858,27 @@ The final plot should look sth like this:
 knitr::include_graphics("https://slcladal.github.io/images/nicesmooth.png")
 ```
 
-You can write the code in the following code box.
+Solution
 
 ```{r smooth02, message=FALSE, warning=FALSE}
-
+myxlsx %>%
+    mutate(family = case_when(family == "bil-mixed" ~ "Mixed bilingual",
+                              family == "bil-rus" ~ "Bilingual Russian",
+                              family == "mono-de" ~ "Monolingual German",
+                              TRUE ~ family)) %>%
+ggplot(aes(x = age_months, y = accent_numeric, 
+                   group = family, color = family, fill = family)) +
+  geom_smooth() +
+  theme_bw() +
+  labs(x = "Age of child\n(in months)", y = "Accent strength rating") +
+  theme(legend.position = "top") +
+  scale_y_discrete(name ="Accent strength rating", 
+                   limits = seq(0, 2, 1), 
+                   labels = c("No accent", "Weak accent", "Strong accent")) +
+    guides(fill=guide_legend(title="Family type"),
+           color=guide_legend(title="Family type")) +
+    scale_fill_manual(values = c("gray", "orange", "lightblue")) +
+    scale_color_manual(values = c("gray", "orange", "lightblue"))
 ```
 
 
@@ -977,10 +996,20 @@ You can see an example of what the plot looks like below.
 knitr::include_graphics("https://slcladal.github.io/images/barplotex.png")
 ```
 
-You can write the code in the code box below.
+Solution
 
 ```{r barplotex1, warning=F, message=F}
-
+ggplot(regdat, aes(x = Response, fill = Group)) +
+  geom_bar(stat = "count", position = position_dodge()) +
+  facet_grid(Word_order ~ Sentence_type) +
+  theme_bw() +
+  labs(y = "Frequency (N)") +
+  theme(legend.position = "top") +
+  coord_cartesian(ylim = c(0, 250)) +
+  geom_text(stat='count', 
+            aes(label=..count..), 
+            vjust=-.5, 
+            position = position_dodge(0.95))
 ```
 
 
